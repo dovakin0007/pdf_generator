@@ -30,7 +30,6 @@ public class PDFExportController {
         
         // Generate random integers in range 0 to 999
         int rand_int1 = rand.nextInt(1000);
-        int rand_int2 = rand.nextInt(1000);
 		String headerKey = "Content-Disposition";
 		String headerValue = "attachment; filename=pdf_" + rand_int1 + ".pdf";
 		httpServletResponse.setHeader(headerKey, headerValue);

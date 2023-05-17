@@ -6,7 +6,7 @@ import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Arrays;
+//import java.util.Arrays;
 import java.util.HashSet;
 import java.util.HashMap;
 import com.example.pdfgenerator.Pojo.CsvData;
@@ -23,34 +23,33 @@ import com.lowagie.text.FontFactory;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.Paragraph;
-import com.lowagie.text.Phrase;
+
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.BaseFont;
-import com.lowagie.text.pdf.PdfPCell;
 import java.io.File;
-import java.io.FileNotFoundException;
+
 
 import net.sourceforge.plantuml.SourceStringReader;
-import com.aspose.diagram.Diagram;
-import com.aspose.diagram.LayoutDirection;
-import com.aspose.diagram.Page;
-import com.aspose.diagram.SaveFileFormat;
-import com.aspose.diagram.Shape;
-import com.aspose.diagram.LayoutOptions;
-import com.aspose.diagram.LayoutStyle;
+//import com.aspose.diagram.Diagram;
+//import com.aspose.diagram.LayoutDirection;
+//import com.aspose.diagram.Page;
+//import com.aspose.diagram.SaveFileFormat;
+//import com.aspose.diagram.Shape;
+//import com.aspose.diagram.LayoutOptions;
+//import com.aspose.diagram.LayoutStyle;
 
 
 @Service
 public class PDFGeneratorService {
 	
-	@SuppressWarnings("deprecation")
+	
 	public void export(HttpServletResponse response) throws Exception{
 
 		BufferedReader reader = null;
 		
 		BufferedReader imsSectionReader = null;
 		
-		ArrayList<CsvData> listOfObject = new ArrayList<>();
+		
 	
 		HashMap<String, ArrayList<CsvData>> map= new HashMap<>();
 		
@@ -70,7 +69,7 @@ public class PDFGeneratorService {
 					String[] imsFields = imsLine.split("\\|"); //creating array using split func
 					ImsSection imsSectionObj = new ImsSection();
 					
-					System.out.println(Arrays.toString(imsFields));
+//					System.out.println(Arrays.toString(imsFields));
 					imsSectionObj.setPSBMember(imsFields[0]);
 					imsSectionObj.setPGMName(imsFields[1].trim());// key of the Hashmap
 					imsSectionObj.setDBDName(imsFields[2]);
@@ -138,11 +137,7 @@ public class PDFGeneratorService {
 			
 			for(String mapKey:map.keySet()) {
 				ArrayList<String> appendedStrings = new ArrayList<>();
-				
-				for(CsvData i: map.get(mapKey)) {
-					//System.out.println(i.getDbName()+" , "+ i.getStepDescription1());
-				}
-				
+	
 				for(CsvData i: map.get(mapKey)) {
 					if (i.getStepDescription1() == "") {
 						
@@ -221,44 +216,103 @@ public class PDFGeneratorService {
 					Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
 					tableHeaderTitle.setSize(14);
 					
-					Paragraph title = new Paragraph(mapKey, fontTitle);
+					Paragraph title = new Paragraph("Function Specification document \n Job-" + mapKey, fontTitle);
 					title.setSpacingAfter(20f);
 					title.setAlignment(Paragraph.ALIGN_CENTER);
 					
 					
 					//creating table
-					PdfPTable table = new PdfPTable(5);
+					PdfPTable table1 = new PdfPTable(5);
 					
-					table.addCell(new Paragraph("DD Name", tableHeaderTitle));// creates header
-					table.addCell(new Paragraph("Physical name", tableHeaderTitle));// creates header
-					table.addCell(new Paragraph("Record length", tableHeaderTitle));// creates header
-					table.addCell(new Paragraph("Record type", tableHeaderTitle));// creates header
-					table.addCell(new Paragraph("uses", tableHeaderTitle));// creates header
+					table1.addCell(new Paragraph("Step Name", tableHeaderTitle));// creates header
+					table1.addCell(new Paragraph("Proc Name", tableHeaderTitle));// creates header
+					table1.addCell(new Paragraph("Proc Step", tableHeaderTitle));// creates header
+					table1.addCell(new Paragraph("Program", tableHeaderTitle));// creates header
+					table1.addCell(new Paragraph("Step Description", tableHeaderTitle));// creates header
 					for(CsvData data: map.get(mapKey)) {//looping to the array list
-						if(data.getDdName() == "") {
-							continue;
+						if(data.getJobStep().trim() == "") {
+						
 						}
 						else {
 						
-						table.addCell(data.getDdName());
-						table.addCell(data.getDsnName());
-						table.addCell("");
-						table.addCell("");
-						table.addCell("");
+						table1.addCell(data.getJobStep());
+						table1.addCell(data.getProcName());
+						table1.addCell(data.getProcStep());
+						table1.addCell(data.getMainProgram());
+						table1.addCell(data.getStepDescription1());
 						}
 						
 					}
+					
+					PdfPTable programTable = new PdfPTable(4);
+					programTable.addCell(new Paragraph("Program Name", tableHeaderTitle));
+					programTable.addCell(new Paragraph("Program Type", tableHeaderTitle));
+					programTable.addCell(new Paragraph("Called Modules", tableHeaderTitle));
+					programTable.addCell(new Paragraph("Program Description", tableHeaderTitle));
+					for (CsvData prgData: map.get(mapKey)) {
+						if (prgData.getMainProgram().trim() == "") {
+							
+						}
+						else {
+							programTable.addCell(prgData.getMainProgram());
+							programTable.addCell(prgData.getProgramType());
+							programTable.addCell("");
+							programTable.addCell("");
+						}
+					}
+					
+									
 					document.add(title);
-					document.add(title("Job Description: "));
-					document.add(content("\t ksahfdiuadjsoai jasoifhoisdf oisfuoidsfh sdifhiedf idsfhsrf"));
-					document.add(title("Input-output file info: "));
-					document.add(table);
-					document.add(title("IMS Databases"));
+					document.add(title("Job Details: "));
+					document.add(content("Below are the high level job details"));
+					document.add(table1);
+					//adding png file;
+					
+					Paragraph flowChartContentEdited = content("Flow diagram depicting sequence of execution");
+					flowChartContentEdited.setSpacingAfter(25f);
+					flowChartContentEdited.setSpacingBefore(25f);
+					
+					if(new File("C:\\Users\\1000070564\\Downloads\\" + mapKey + ".png").exists()) {
+//						document.add(title("FSD Flow chart:"));
+						Image pngFile = Image.getInstance("C:\\Users\\1000070564\\Downloads\\" + mapKey + ".png");
+						pngFile.getAbsoluteX();
+						pngFile.getAbsoluteY();
+						pngFile.scalePercent(60f);
+						pngFile.setAlignment(Image.ALIGN_CENTER);
+//						pngFile.setSpacingAfter(50f);
+//						pngFile.setSpacingBefore(50f);
+						document.add(flowChartContentEdited);
+						document.add(pngFile);
+//						document.add(title("Program Details"));
+//						document.add(content("Below programs are part of this job which performs given actions."));
+//						document.add(programTable);
+					}
+					else {
+						document.add(flowChartContentEdited);
+						document.add(content("NN"));
+//						document.add(title("Program Details"));
+//						document.add(content("Below programs are part of this job which performs given actions."));
+//						document.add(programTable);
+					}
+					
+					
+					Paragraph prgDetailsTitle = title("Program Details");
+					prgDetailsTitle.setSpacingBefore(30f);
+					document.add(prgDetailsTitle);
+					document.add(content("Below programs are part of this job which performs given actions."));
+					document.add(programTable);	
+					document.add(title("Databases"));
+					Paragraph indentendIMSDBName = title("IMS Databases");
+					Paragraph imsDBContent = content("Below IMS databases are in use by respective programs. "
+							+ "These programs can perform below actions on Database / Segment within the database. ");
+					imsDBContent.setIndentationLeft(50f);
+					indentendIMSDBName.setIndentationLeft(50f);
+					
+					document.add(indentendIMSDBName);
+					document.add(imsDBContent);
 					
 					//creating table
 					HashSet<String> keysForIMSMap = new HashSet<>();
-					
-					
 					for (CsvData data: map.get(mapKey)) {
 						if (data.getMainProgram().trim()== "") {
 							keysForIMSMap.add(null);
@@ -296,20 +350,70 @@ public class PDFGeneratorService {
 								+ "A - All actions"
 								+ "\r\n"
 								+ "P - Path Call"));
-					}	
-					if(new File("C:\\Users\\1000070564\\Downloads\\" + mapKey + ".png").exists()) {
-						document.add(title("FSD Flow chart:"));
-						Image pngFile = Image.getInstance("C:\\Users\\1000070564\\Downloads\\" + mapKey + ".png");
-						pngFile.getAbsoluteX();
-						pngFile.getAbsoluteY();
-						pngFile.scalePercent(60f);
-						pngFile.setAlignment(Image.ALIGN_CENTER);
-						document.add(pngFile);
-						document.close();
 					}
-					else {
-						document.close();
+					
+					Paragraph indentendDB2DBName = title("DB2 Databases");
+					indentendDB2DBName.setIndentationLeft(50f);
+					
+					Paragraph indentedDB2Content = content("Queries executed in programs are provided herewith.");
+					indentedDB2Content.setIndentationLeft(50f);
+					
+					
+					document.add(indentendDB2DBName);
+					document.add(indentedDB2Content);
+					for (String data: keysForIMSMap) {
+//						System.out.println(data);
+//						System.out.println(data.getMainProgram().trim() + ", " + (imsMap.get("AASA321")).get(0).getPGMName());
+//						System.out.println();
+							
+					
+						if (imsMap.containsKey(data)) {
+							document.add(title(data));
+							ArrayList<ImsSection> pgmTablesEntry = imsMap.get(data);
+							document.add(db2Tables(pgmTablesEntry));
+							}					
 					}
+					
+					Paragraph indentedCopyBookName = title("CopyBook Details");
+					indentedCopyBookName.setIndentationLeft(50f);
+					
+					Paragraph indentedCopyBookDetails = content("This section provides the details of copybooks.");
+					indentedCopyBookDetails.setIndentationLeft(50f);
+					
+					document.add(indentedCopyBookName);
+					document.add(indentedCopyBookDetails);
+					for (String data: keysForIMSMap) {
+//						System.out.println(data);
+//						System.out.println(data.getMainProgram().trim() + ", " + (imsMap.get("AASA321")).get(0).getPGMName());
+//						System.out.println();
+							
+					
+						if (imsMap.containsKey(data)) {
+							document.add(title(data));
+							ArrayList<ImsSection> pgmTablesEntry = imsMap.get(data);
+							document.add(copyBookTables(pgmTablesEntry));
+							}					
+					}
+					
+					Paragraph indentedInputOutput = title("Input/Output Files");
+					indentedInputOutput.setIndentationLeft(50f);
+					
+					document.add(indentedInputOutput);
+					for (String data: keysForIMSMap) {
+//						System.out.println(data);
+//						System.out.println(data.getMainProgram().trim() + ", " + (imsMap.get("AASA321")).get(0).getPGMName());
+//						System.out.println();
+							
+					
+						if (imsMap.containsKey(data)) {
+							document.add(title(data));
+							ArrayList<ImsSection> pgmTablesEntry = imsMap.get(data);
+							document.add(inputOutputTables(pgmTablesEntry));
+							}					
+					}
+
+
+					document.close();
 					
 				} catch (DocumentException | IOException e) {
 					// TODO Auto-generated catch block
@@ -353,20 +457,20 @@ public class PDFGeneratorService {
 //		ArrayList<PdfPTable> tables = new ArrayList<>();
 		
 		
-		PdfPTable newTable = new PdfPTable(6);
+		PdfPTable newTable = new PdfPTable(5);
 		
 		Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
 		tableHeaderTitle.setSize(14);
 		
-		newTable.addCell(new Paragraph("PSB PDS MEMBER", tableHeaderTitle));// creates header
-		newTable.addCell(new Paragraph("PGMNAME", tableHeaderTitle));// creates header
-		newTable.addCell(new Paragraph("DBDNAME", tableHeaderTitle));// creates header
-		newTable.addCell(new Paragraph("DBD-PROCOPT", tableHeaderTitle));// creates header
-		newTable.addCell(new Paragraph("SEGMENT", tableHeaderTitle));// creates header
-		newTable.addCell(new Paragraph("SEG-PROCOPT", tableHeaderTitle));
+//		newTable.addCell(new Paragraph("PSB PDS MEMBER", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Program Name", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Database Name", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Database Action", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Segment Used", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Segment Action", tableHeaderTitle));
 		
 		for (ImsSection data: ImsData) {
-			newTable.addCell(data.getPSBMember());
+//			newTable.addCell(data.getPSBMember());
 			newTable.addCell(data.getPGMName());
 			newTable.addCell(data.getDBDName());
 			newTable.addCell(data.getDBDProcopt());
@@ -374,7 +478,81 @@ public class PDFGeneratorService {
 			newTable.addCell(data.getSegProcopt());
 		}
 		
-		newTable.setSpacingAfter(20f);
+		return newTable;
+		
+	}
+	
+	public PdfPTable db2Tables(ArrayList<ImsSection> ImsData){
+//		ArrayList<PdfPTable> tables = new ArrayList<>();
+		
+		
+		PdfPTable newTable = new PdfPTable(3);
+		
+		Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
+		tableHeaderTitle.setSize(14);
+		
+//		newTable.addCell(new Paragraph("PSB PDS MEMBER", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Program Name", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Database Name", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("DB2 Query", tableHeaderTitle));// creates header
+
+//		for (ImsSection data: ImsData) {
+////			newTable.addCell(data.getPSBMember());
+//			newTable.addCell(data.getPGMName());
+//			newTable.addCell(data.getDBDName());
+//			newTable.addCell(data.getDBDProcopt());
+//
+//		}
+		
+		return newTable;
+		
+	}
+	
+	public PdfPTable copyBookTables(ArrayList<ImsSection> ImsData){
+//		ArrayList<PdfPTable> tables = new ArrayList<>();
+		
+		
+		PdfPTable newTable = new PdfPTable(2);
+		
+		Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
+		tableHeaderTitle.setSize(14);
+		
+//		newTable.addCell(new Paragraph("PSB PDS MEMBER", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Program Name", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("CopyBook Name", tableHeaderTitle));// creates header
+
+//		for (ImsSection data: ImsData) {
+////			newTable.addCell(data.getPSBMember());
+//			newTable.addCell(data.getPGMName());
+//			newTable.addCell(data.getDBDName());
+//		}
+		
+		return newTable;
+		
+	}
+	
+	public PdfPTable inputOutputTables(ArrayList<ImsSection> ImsData){
+//		ArrayList<PdfPTable> tables = new ArrayList<>();
+		
+		
+		PdfPTable newTable = new PdfPTable(3);
+		
+		Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
+		tableHeaderTitle.setSize(14);
+		
+//		newTable.addCell(new Paragraph("PSB PDS MEMBER", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Program Name", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("File Name", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Usage(Input / Output)", tableHeaderTitle));// creates header
+
+//		for (ImsSection data: ImsData) {
+////			newTable.addCell(data.getPSBMember());
+//			newTable.addCell(data.getPGMName());
+//			newTable.addCell(data.getDBDName());
+//			newTable.addCell(data.getDBDProcopt());
+//
+//		}
+		
 		return newTable;
 		
 	}
