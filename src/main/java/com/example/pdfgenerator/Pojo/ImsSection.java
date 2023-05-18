@@ -1,12 +1,12 @@
 package com.example.pdfgenerator.Pojo;
 
 public class ImsSection {
-	private String PSBMember;
-	private String PGMName;
-	private String DBDName;
-	private String DBDProcopt;
-	private String Segement;
-	private String SegProcopt;
+	private String PSBMember="";
+	private String PGMName="";
+	private String DBDName="";
+	private String DBDProcopt="";
+	private String Segement="";
+	private String SegProcopt="";
 	
 	
 	public String getPSBMember() {

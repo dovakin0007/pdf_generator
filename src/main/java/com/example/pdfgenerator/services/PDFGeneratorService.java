@@ -17,15 +17,22 @@ import org.springframework.stereotype.Service;
 import jakarta.servlet.http.HttpServletResponse;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
 import com.lowagie.text.Font;
+import com.lowagie.text.Phrase;
 import com.lowagie.text.Image;
 import com.lowagie.text.FontFactory;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.Paragraph;
 
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfNumber;
+import com.lowagie.text.pdf.PdfPageEventHelper;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.ColumnText;
+
 import java.io.File;
 
 
@@ -150,6 +157,7 @@ public class PDFGeneratorService {
 				}
 				StringBuilder uml = new StringBuilder();
 				File fOS= new File("C:\\Users\\1000070564\\Downloads\\" + mapKey + ".png");
+				FontFactory.register("C:\\Windows\\Fonts\\Calibri");
 				if (appendedStrings.size() == 0) {
 					
 				}else {
@@ -204,10 +212,11 @@ public class PDFGeneratorService {
 //				diagram.layout(flowChartOptions);
 //				
 //				diagram.save("C:\\Users\\1000070564\\Downloads\\" + mapKey +".jpeg" , SaveFileFormat.JPEG);
-				Document document = new Document(PageSize.A4.rotate());
+				Document document = new Document(PageSize.A4);
 				try {
-					PdfWriter.getInstance(document ,new FileOutputStream("C:\\Users\\1000070564\\Downloads\\" + mapKey + ".pdf"));//change path where to write
+					PdfWriter writer = PdfWriter.getInstance(document ,new FileOutputStream("C:\\Users\\1000070564\\Downloads\\" + mapKey + ".pdf"));//change path where to write
 //					PdfWriter.getInstance(document, new FileOutputStream(mapKey));
+					writer.setPageEvent(new PageNumberAndMarginHandler());
 					document.open();
 					
 					Font fontTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
@@ -216,7 +225,7 @@ public class PDFGeneratorService {
 					Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
 					tableHeaderTitle.setSize(14);
 					
-					Paragraph title = new Paragraph("Function Specification document \n Job-" + mapKey, fontTitle);
+					Paragraph title = new Paragraph("Functional Specification document \n Job-" + mapKey, fontTitle);
 					title.setSpacingAfter(20f);
 					title.setAlignment(Paragraph.ALIGN_CENTER);
 					
@@ -234,12 +243,36 @@ public class PDFGeneratorService {
 						
 						}
 						else {
+						if(data.getJobStep().trim() == "") {
+							table1.addCell("NA");
+						}else {
+							table1.addCell(data.getJobStep());
+						}
 						
-						table1.addCell(data.getJobStep());
-						table1.addCell(data.getProcName());
-						table1.addCell(data.getProcStep());
-						table1.addCell(data.getMainProgram());
-						table1.addCell(data.getStepDescription1());
+						if (data.getProcName().trim() == "") {
+							table1.addCell("NA");
+						}else {
+							table1.addCell(data.getProcName());
+						}
+						
+						if(data.getProcStep().trim() == "") {
+							table1.addCell("NA");
+						}
+						else {
+							table1.addCell(data.getProcStep());
+						}
+						
+						if(data.getMainProgram().trim() == "") {
+							table1.addCell("NA");
+						}
+						else {
+							table1.addCell(data.getMainProgram());
+						}
+						if(data.getStepDescription2().trim() == "") {
+							table1.addCell("NA");
+						}else {
+							table1.addCell(data.getStepDescription2());
+						}
 						}
 						
 					}
@@ -254,10 +287,18 @@ public class PDFGeneratorService {
 							
 						}
 						else {
-							programTable.addCell(prgData.getMainProgram());
-							programTable.addCell(prgData.getProgramType());
-							programTable.addCell("");
-							programTable.addCell("");
+							if (prgData.getMainProgram().trim() == "") {
+								programTable.addCell("NA");
+							} else {
+								programTable.addCell(prgData.getMainProgram());
+							}
+							if (prgData.getMainProgram().trim() == "") {
+								programTable.addCell("NA");
+							}else {
+								programTable.addCell(prgData.getProgramType());
+							}
+							programTable.addCell("NA");
+							programTable.addCell("NA");
 						}
 					}
 					
@@ -332,8 +373,15 @@ public class PDFGeneratorService {
 							
 					
 						if (imsMap.containsKey(data)) {
-							document.add(title(data));
+							
+							Paragraph indentedSubTitle = title(data);
+//							document.add(title(data));
+							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
+							indentedSubTitle.setFont(fontForSubTitle);
+							indentedSubTitle.setIndentationLeft(100f);
+							document.add(indentedSubTitle);
 							ArrayList<ImsSection> pgmTablesEntry = imsMap.get(data);
+							
 							document.add(pgmTables(pgmTablesEntry));
 							}					
 						}
@@ -368,7 +416,15 @@ public class PDFGeneratorService {
 							
 					
 						if (imsMap.containsKey(data)) {
-							document.add(title(data));
+//							document.add(title(data));
+							
+							Paragraph indentedSubTitle = title(data);
+//							document.add(title(data));
+							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
+							indentedSubTitle.setFont(fontForSubTitle);
+							indentedSubTitle.setIndentationLeft(100f);
+							document.add(indentedSubTitle);
+							
 							ArrayList<ImsSection> pgmTablesEntry = imsMap.get(data);
 							document.add(db2Tables(pgmTablesEntry));
 							}					
@@ -389,7 +445,12 @@ public class PDFGeneratorService {
 							
 					
 						if (imsMap.containsKey(data)) {
-							document.add(title(data));
+							Paragraph indentedSubTitle = title(data);
+//							document.add(title(data));
+							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
+							indentedSubTitle.setFont(fontForSubTitle);
+							indentedSubTitle.setIndentationLeft(100f);
+							document.add(indentedSubTitle);
 							ArrayList<ImsSection> pgmTablesEntry = imsMap.get(data);
 							document.add(copyBookTables(pgmTablesEntry));
 							}					
@@ -406,15 +467,24 @@ public class PDFGeneratorService {
 							
 					
 						if (imsMap.containsKey(data)) {
-							document.add(title(data));
+//							document.add(title(data));
+							Paragraph indentedSubTitle = title(data);
+//							document.add(title(data));
+							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
+							indentedSubTitle.setFont(fontForSubTitle);
+							indentedSubTitle.setIndentationLeft(100f);
+							document.add(indentedSubTitle);
 							ArrayList<ImsSection> pgmTablesEntry = imsMap.get(data);
 							document.add(inputOutputTables(pgmTablesEntry));
 							}					
 					}
-
-
+					
+//					for(int i = 0;i< document.getPageNumber(); i++) {
+////						PdfPage page
+//					}
 					document.close();
 					
+	
 				} catch (DocumentException | IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -435,6 +505,7 @@ public class PDFGeneratorService {
 		fontParagraph.setSize(14);
 		
 		Paragraph paragraph2 = new Paragraph(contentTitle, someFont);
+		paragraph2.setIndentationLeft(10f);
 		paragraph2.setAlignment(Paragraph.ALIGN_LEFT);
 		paragraph2.setSpacingAfter(20f);
 		return paragraph2;
@@ -445,7 +516,7 @@ public class PDFGeneratorService {
 		fontParagraph.setSize(14);
 		
 		Paragraph paragraph2 = new Paragraph(content + "", fontParagraph);
-		paragraph2.setIndentationLeft(50);
+		paragraph2.setIndentationLeft(55);
 		paragraph2.setAlignment(Paragraph.ALIGN_LEFT);
 		paragraph2.setSpacingAfter(20f);
 		return paragraph2;
@@ -471,11 +542,39 @@ public class PDFGeneratorService {
 		
 		for (ImsSection data: ImsData) {
 //			newTable.addCell(data.getPSBMember());
-			newTable.addCell(data.getPGMName());
-			newTable.addCell(data.getDBDName());
-			newTable.addCell(data.getDBDProcopt());
-			newTable.addCell(data.getSegement());
-			newTable.addCell(data.getSegProcopt());
+			if (data.getPGMName().isBlank()) {
+				newTable.addCell("NA");
+			}
+			else {
+				newTable.addCell(data.getPGMName());
+			}
+			
+			if (data.getDBDName().isBlank()) {
+				newTable.addCell("NA");
+			}
+			else {
+				newTable.addCell(data.getDBDName());
+			}
+			
+			if (data.getDBDProcopt().isBlank()) {
+				newTable.addCell("NA");
+			}else {
+				newTable.addCell(data.getDBDProcopt());
+			}
+			
+			if (data.getSegement().trim() == "") {
+				newTable.addCell("NA");
+			}
+			else {
+				newTable.addCell(data.getSegement());
+			}
+			if(data.getSegProcopt().trim() == "") {
+				newTable.addCell("NA");
+			}
+			else {
+				newTable.addCell(data.getSegProcopt());
+//				System.out.println(data.getSegProcopt().trim() == "");
+			}
 		}
 		
 		return newTable;
@@ -556,9 +655,33 @@ public class PDFGeneratorService {
 		return newTable;
 		
 	}
+	
+	private static class PageNumberAndMarginHandler extends PdfPageEventHelper{
+		
+		@Override
+		public void onEndPage(PdfWriter writer, Document document) {
+			PdfContentByte canvas = writer.getDirectContent();
+			
+			int pageNumber = writer.getPageNumber();
+			float x = document.right() -50;
+			float y = document.bottom() - 20;
+			
+			Phrase pageNumberPhrase = new Phrase("Page " + pageNumber);
+			pageNumberPhrase.setFont(new Font(Font.TIMES_ROMAN, 8));
+			ColumnText.showTextAligned(canvas, Element.ALIGN_CENTER, pageNumberPhrase, x, y, 0);
+			
+			float leftMargin = document.leftMargin();
+			float bottomMargin = document.bottomMargin();
+			float rightMargin = document.rightMargin();
+			float topMargin = document.topMargin();
+			
+			canvas.setLineWidth(0.5f);
+			canvas.rectangle(leftMargin, bottomMargin, document.getPageSize().getWidth()-leftMargin- rightMargin, document.getPageSize().getHeight() - topMargin - bottomMargin);
+			canvas.stroke();
+		}		
 
 }
-
+}
 
 
 
