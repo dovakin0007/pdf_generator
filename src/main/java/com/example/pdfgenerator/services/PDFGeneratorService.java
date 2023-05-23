@@ -621,7 +621,8 @@ public class PDFGeneratorService {
 		newTable.addCell(new Paragraph("Segment Used", tableHeaderTitle));// creates header
 		newTable.addCell(new Paragraph("Segment Action", tableHeaderTitle));	
 		
-		
+
+		int number_of_elements = 0;
 		for (FocusData data: focusData) {
 //			newTable.addCell(data.getPSBMember());
 //			System.out.print("OK\n");
@@ -632,11 +633,17 @@ public class PDFGeneratorService {
 				newTable.addCell(data.getProgramDescription());
 				newTable.addCell("NA");
 				newTable.addCell("NA");
-			}else if((!(data.getProgramType().trim().equals("IMS DATABASE"))&& data.getProgramName().trim().equals(key))) {
-				
+				number_of_elements++;
 			}
 		}
-		
+		if(number_of_elements == 0) {
+			newTable.addCell("NA");
+			newTable.addCell("NA");
+			newTable.addCell("NA");
+			newTable.addCell("NA");
+			newTable.addCell("NA");
+		}
+
 		return newTable;
 		
 	}
