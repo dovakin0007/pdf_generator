@@ -348,12 +348,12 @@ public class PDFGeneratorService {
 					
 					if(focusMap.containsKey(mapKey)) {
 						for(FocusData j: focusMap.get(mapKey)) {
-							if(mapKey.equals(j.getJobName())) {
+							if(mapKey.equals(j.getJobName()) && j.getProgramType().equals("IMS DATABASE")) {
 								focusDataToBeAdded.add(j);
 							}
 						}
 					
-						for (FocusData i: focusDataToBeAdded) {
+						for (FocusData i: focusDataToBeAdded ) {
 							keysForIMSMapFocus.add(i.getProgramName().trim());
 						}
 					}
