@@ -8,10 +8,12 @@ import java.io.FileReader;
 import java.util.ArrayList;
 //import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.HashMap;
 import com.example.pdfgenerator.Pojo.CsvData;
 import com.example.pdfgenerator.Pojo.ImsSection;
 import com.example.pdfgenerator.Pojo.FocusData;
+import com.example.pdfgenerator.Pojo.JobDetails;
 import org.springframework.stereotype.Service;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -57,13 +59,13 @@ public class PDFGeneratorService {
 		
 		BufferedReader focusDataReader = null;
 	
-		HashMap<String, ArrayList<CsvData>> map= new HashMap<>();
+		HashMap<String, ArrayList<JobDetails>> map= new HashMap<>();
 		
 		HashMap<String, ArrayList<ImsSection>> imsMap = new HashMap<>();
 		
 		HashMap<String, ArrayList<FocusData>> focusMap = new HashMap<>();
 		try {
-			reader = new BufferedReader(new FileReader("C:\\Users\\1000070564\\Downloads\\Report_pipe.txt")); //change path where to read
+			reader = new BufferedReader(new FileReader("C:\\Users\\1000070564\\Downloads\\Job_detail_0523.txt")); //change path where to read
 			
 			imsSectionReader = new BufferedReader (new FileReader("C:\\Users\\1000070564\\Downloads\\IMS_Section.txt")); // change path where to read for IMS Db2
 			
@@ -105,39 +107,27 @@ public class PDFGeneratorService {
 			reader.readLine();// skips first line
 			
 			while((line = reader.readLine()) != null) {
+				if (line.contains(String.valueOf('|'))) {
 				String[] fields = line.split("\\|");
-				CsvData randClass = new CsvData();
-				randClass.setJobName(fields[0].trim());// key for the hashmap
-				randClass.setJobStep(fields[1]);
-				randClass.setStepDescription1(fields[2]);
-				randClass.setProcName(fields[3]);
-				randClass.setProcStep(fields[4]);
-				randClass.setStepDescription2(fields[5]);
-				randClass.setMainProgram(fields[6]);
-				randClass.setModuleType(fields[7]);
-				randClass.setProgramType(fields[8]);
-				randClass.setSubModuleName(fields[9]);
-				randClass.setSubModuleType(fields[10]);
-				randClass.setParams(fields[11]);
-				randClass.setDdName(fields[12]);
-				randClass.setDsnName(fields[13]);
-				randClass.setDisposition(fields[14]);
-				randClass.setReadAndWrite(fields[15]);
-				randClass.setDbType(fields[16]);
-				randClass.setImsDBOperation(fields[17]);
-				randClass.setDb2DBOperation(fields[18]);
-				randClass.setComplexity(fields[19]);
+				JobDetails jobDetails = new JobDetails();
+				jobDetails.setJobName(fields[0].trim());
+				jobDetails.setJobStep(fields[1].trim());
+				jobDetails.setProcName(fields[2].trim());
+				jobDetails.setProcStep(fields[3].trim());
+				jobDetails.setProgramName(fields[4].trim());
+				jobDetails.setStepDescription(fields[5].trim());
+				
 				if (map.containsKey(fields[0].trim())) {
-					ArrayList<CsvData> newValue = map.get(fields[0].trim());
-					newValue.add(randClass);
+					ArrayList<JobDetails> newValue = map.get(fields[0].trim());
+					newValue.add(jobDetails);
 					map.put(fields[0].trim(), newValue);
 				}
 				else {
-					ArrayList<CsvData> newValue = new ArrayList<>();
-				
-					newValue.add(randClass);
+					ArrayList<JobDetails> newValue = new ArrayList<>();
+					newValue.add(jobDetails);
 					map.put(fields[0].trim(), newValue);				
 					}
+			}
 			}
 			String focusLine;
 			
@@ -145,12 +135,13 @@ public class PDFGeneratorService {
 				if (focusLine.contains(String.valueOf('|'))) {
 					String[] fields = focusLine.split("\\|");
 					FocusData focusObj = new FocusData();
-					focusObj.setProgramName(fields[0].trim());
-					focusObj.setProgramTableOrFileName(fields[1].trim());
-					focusObj.setProgramDescription(fields[2].trim());
-					focusObj.setProgramType(fields[3].trim());
-					focusObj.setInputOrOutput(fields[4].trim());
-					focusObj.setProgramStep(fields[5].trim());
+					focusObj.setJobName(fields[0].trim());
+					focusObj.setProgramName(fields[1].trim());
+					focusObj.setProgramTableOrFileName(fields[2].trim());
+					focusObj.setProgramDescription(fields[3].trim());
+					focusObj.setProgramType(fields[4].trim());
+					focusObj.setInputOrOutput(fields[5].trim());
+					focusObj.setProgramStep(fields[6].trim());
 					
 					if (focusMap.containsKey(fields[0].trim())) {
 						ArrayList<FocusData> focusArray = focusMap.get(fields[0].trim());
@@ -171,16 +162,14 @@ public class PDFGeneratorService {
 			// work on job description
 			
 			
-			
 			for(String mapKey:map.keySet()) {
 				ArrayList<String> appendedStrings = new ArrayList<>();
-	
-				for(CsvData i: map.get(mapKey)) {
-					if (i.getStepDescription1() == "") {
+				for(JobDetails i: map.get(mapKey)) {
+					if (i.getStepDescription() == "") {
 						
 					}
 					else {
-						String newString = i.getStepDescription1();
+						String newString = i.getStepDescription();
 					
 						appendedStrings.add(newString);
 					}
@@ -211,37 +200,6 @@ public class PDFGeneratorService {
 					umlReader.outputImage(outputPNGFile);
 				}
 
-				
-//				SourceStringReader umlReader = new SourceStringReader(uml.toString());
-//				
-//				FileOutputStream outputPNGFile = new FileOutputStream(fOS);
-//				umlReader.outputImage(outputPNGFile);
-			
-
-//				Diagram diagram = new Diagram();
-//				String rectangleMaster = "Process", decisionMaster = "Decision", connectorMaster = "Dynamic connector";
-//				double width = 2, height = 2, pinX = 20, pinY= 10;
-//				Shape[] processShapes = new Shape[appendedStrings.size()];
-//				double sizeY = 1;
-//				int numberOfShapes = 0;
-//				for (String i: appendedStrings) {
-//					long process = diagram.addShape(, line, numberOfShapes)
-//				}
-//				
-//				
-//				//set Layout options
-//				LayoutOptions flowChartOptions = new LayoutOptions();
-//				flowChartOptions.setLayoutStyle(LayoutStyle.FLOW_CHART);
-//				flowChartOptions.setSpaceShapes(1f);
-//				flowChartOptions.setEnlargePage(true);
-//				
-//				
-//			
-//				//set Layout direction
-//				flowChartOptions.setDirection(LayoutDirection.LEFT_TO_RIGHT);
-//				diagram.layout(flowChartOptions);
-//				
-//				diagram.save("C:\\Users\\1000070564\\Downloads\\" + mapKey +".jpeg" , SaveFileFormat.JPEG);
 				Document document = new Document(PageSize.A4);
 				try {
 					PdfWriter writer = PdfWriter.getInstance(document ,new FileOutputStream("C:\\Users\\1000070564\\Downloads\\" + mapKey + ".pdf"));//change path where to write
@@ -268,7 +226,7 @@ public class PDFGeneratorService {
 					table1.addCell(new Paragraph("Proc Step", tableHeaderTitle));// creates header
 					table1.addCell(new Paragraph("Program", tableHeaderTitle));// creates header
 					table1.addCell(new Paragraph("Step Description", tableHeaderTitle));// creates header
-					for(CsvData data: map.get(mapKey)) {//looping to the array list
+					for(JobDetails data: map.get(mapKey)) {//looping to the array list
 						if(data.getJobStep().trim() == "") {
 						
 						}
@@ -292,16 +250,16 @@ public class PDFGeneratorService {
 							table1.addCell(data.getProcStep());
 						}
 						
-						if(data.getMainProgram().trim() == "") {
+						if(data.getProgramName().trim() == "") {
 							table1.addCell("NA");
 						}
 						else {
-							table1.addCell(data.getMainProgram());
+							table1.addCell(data.getProgramName());
 						}
-						if(data.getStepDescription2().trim() == "") {
+						if(data.getStepDescription().trim() == "") {
 							table1.addCell("NA");
 						}else {
-							table1.addCell(data.getStepDescription2());
+							table1.addCell(data.getStepDescription());
 						}
 						}
 						
@@ -312,20 +270,20 @@ public class PDFGeneratorService {
 					programTable.addCell(new Paragraph("Program Type", tableHeaderTitle));
 					programTable.addCell(new Paragraph("Called Modules", tableHeaderTitle));
 					programTable.addCell(new Paragraph("Program Description", tableHeaderTitle));
-					for (CsvData prgData: map.get(mapKey)) {
-						if (prgData.getMainProgram().trim() == "") {
+					for (JobDetails prgData: map.get(mapKey)) {
+						if (prgData.getProgramName().trim() == "") {
 							
 						}
 						else {
-							if (prgData.getMainProgram().trim() == "") {
+							if (prgData.getProgramName().trim() == "") {
 								programTable.addCell("NA");
 							} else {
-								programTable.addCell(prgData.getMainProgram());
+								programTable.addCell(prgData.getProgramName());
 							}
-							if (prgData.getMainProgram().trim() == "") {
+							if (prgData.getProgramName().trim() == "") {
 								programTable.addCell("NA");
 							}else {
-								programTable.addCell(prgData.getProgramType());
+								programTable.addCell(prgData.getProgramName());
 							}
 							programTable.addCell("NA");
 							programTable.addCell("NA");
@@ -382,51 +340,30 @@ public class PDFGeneratorService {
 					
 					//creating table
 					HashSet<String> keysForIMSMapSCLM = new HashSet<>();
-					HashSet<String> keysForIMSMapFOCUS = new HashSet<>();					
-					HashSet<String> fullKeysList = new HashSet<>();
-					HashSet<String> focusProgramNames = new HashSet<>();
 					HashSet<String> onlyFKProgramName = new HashSet<>();
-					for (CsvData data: map.get(mapKey)) {
-						if (data.getMainProgram().trim()== "") {
-							keysForIMSMapSCLM.add(null);
-							keysForIMSMapFOCUS.add(null);
-//							focusProgramNames.add(null);
-						}else {							
-							if(data.getModuleType().strip().equals("SCLM")) {
+//					ArrayList
 					
-								keysForIMSMapSCLM.add(data.getMainProgram().trim());
-//								System.out.println(data.getMainProgram().trim() + " " + data.getModuleType().strip().length());
-//								System.out.println("added");
-								fullKeysList.add(data.getMainProgram().trim());
+					ArrayList<FocusData> focusDataToBeAdded = new ArrayList<>();
+					HashSet<String>keysForIMSMapFocus = new HashSet<>();
+					
+					if(focusMap.containsKey(mapKey)) {
+						for(FocusData j: focusMap.get(mapKey)) {
+							if(mapKey.equals(j.getJobName())) {
+								focusDataToBeAdded.add(j);
 							}
-							else if(data.getModuleType().strip().equals("FOCUS")) {
-								keysForIMSMapFOCUS.add(data.getMainProgram().trim());
-								fullKeysList.add(data.getMainProgram().trim());
-							}
+						}
+					
+						for (FocusData i: focusDataToBeAdded) {
+							keysForIMSMapFocus.add(i.getProgramName().trim());
 						}
 					}
 					
-					for (String fKForFocusData: focusMap.keySet()) {
-						focusProgramNames.add(fKForFocusData);
-					}
-					
-					for(String i: focusProgramNames) {
-						if(fullKeysList.contains(i)) {
-							onlyFKProgramName.add(i);
-							System.out.println("yes");
-						}
-					}
-
 					if(keysForIMSMapSCLM.contains(null)) {
 						document.add(content("NA"));
 					}else {
 					
 					for (String data: keysForIMSMapSCLM) {
-//						System.out.println(data);
-//						System.out.println(data.getMainProgram().trim() + ", " + (imsMap.get("AASA321")).get(0).getPGMName());
-//						System.out.println();
-							
-					
+//						
 						if (imsMap.containsKey(data)) {
 							
 							Paragraph indentedSubTitle = title(data + "-SCLM");
@@ -441,29 +378,32 @@ public class PDFGeneratorService {
 							}					
 						}
 					}
+					for(String i: keysForIMSMapFocus) {
+						System.out.println(i);
+					}
 					
 					if (keysForIMSMapSCLM.contains(null)) {
 						document.add(content("NA"));
 					}
+				
 					else {
-					for (String data: onlyFKProgramName) {
+					for (String data: keysForIMSMapFocus) {
 //						System.out.println(data);
 //						System.out.println(data.getMainProgram().trim() + ", " + (imsMap.get("AASA321")).get(0).getPGMName());
 //						System.out.println();
 							
+
 					
-						if (focusMap.containsKey(data)) {
 							
-							Paragraph indentedSubTitle = title(data + "-FOCUS");
+						Paragraph indentedSubTitle = title(data + "-FOCUS");
 //							document.add(title(data));
-							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
-							indentedSubTitle.setFont(fontForSubTitle);
-							indentedSubTitle.setIndentationLeft(100f);
-							document.add(indentedSubTitle);
-							ArrayList<FocusData> pgmTablesEntry = focusMap.get(data);
+						Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
+						indentedSubTitle.setFont(fontForSubTitle);
+						indentedSubTitle.setIndentationLeft(100f);
+						document.add(indentedSubTitle);
 							
-							document.add(pgmTablesFocus(pgmTablesEntry));
-							}					
+						document.add(pgmTablesFocus(focusDataToBeAdded, data));
+							
 						}
 					
 						document.add(content("G - Get / Read"
@@ -489,7 +429,7 @@ public class PDFGeneratorService {
 					Paragraph indentedDB2Content = content("Queries executed in programs are provided herewith.");
 					indentedDB2Content.setIndentationLeft(50f);
 					
-					
+	
 					
 					document.add(indentendDB2DBName);
 					document.add(indentedDB2Content);
@@ -499,19 +439,17 @@ public class PDFGeneratorService {
 //						System.out.println();
 							
 					
-						if (focusMap.containsKey(data)) {
 //							document.add(title(data));
 							
-							Paragraph indentedSubTitle = title(data);
+						Paragraph indentedSubTitle = title(data);
 //							document.add(title(data));
-							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
-							indentedSubTitle.setFont(fontForSubTitle);
-							indentedSubTitle.setIndentationLeft(100f);
-							document.add(indentedSubTitle);
-							
-							ArrayList<FocusData> pgmTablesEntry = focusMap.get(data);
-							document.add(db2Tables(pgmTablesEntry));
-							}					
+						Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
+						indentedSubTitle.setFont(fontForSubTitle);
+						indentedSubTitle.setIndentationLeft(100f);
+						document.add(indentedSubTitle);	
+						ArrayList<FocusData> pgmTablesEntry = focusMap.get(data);
+						document.add(db2Tables(pgmTablesEntry));
+					
 					}
 					
 					Paragraph indentedCopyBookName = title("CopyBook Details");
@@ -667,7 +605,7 @@ public class PDFGeneratorService {
 		
 	}
 	
-	public PdfPTable pgmTablesFocus(ArrayList<FocusData> focusData){
+	public PdfPTable pgmTablesFocus(ArrayList<FocusData> focusData, String key){
 //		ArrayList<PdfPTable> tables = new ArrayList<>();
 		
 		
@@ -681,18 +619,21 @@ public class PDFGeneratorService {
 		newTable.addCell(new Paragraph("Database Name", tableHeaderTitle));// creates header
 		newTable.addCell(new Paragraph("Database Action", tableHeaderTitle));// creates header
 		newTable.addCell(new Paragraph("Segment Used", tableHeaderTitle));// creates header
-		newTable.addCell(new Paragraph("Segment Action", tableHeaderTitle));
+		newTable.addCell(new Paragraph("Segment Action", tableHeaderTitle));	
+		
 		
 		for (FocusData data: focusData) {
 //			newTable.addCell(data.getPSBMember());
 //			System.out.print("OK\n");
-			if ((data.getProgramType().trim().equals("IMS DATABASE"))) {
+			if ((data.getProgramType().trim().equals("IMS DATABASE")&& data.getProgramName().trim().equals(key))) {
 				
 				newTable.addCell(data.getProgramName());
 				newTable.addCell(data.getProgramTableOrFileName());
 				newTable.addCell(data.getProgramDescription());
 				newTable.addCell("NA");
 				newTable.addCell("NA");
+			}else if((!(data.getProgramType().trim().equals("IMS DATABASE"))&& data.getProgramName().trim().equals(key))) {
+				
 			}
 		}
 		
@@ -703,7 +644,6 @@ public class PDFGeneratorService {
 	
 	public PdfPTable db2Tables(ArrayList<FocusData> focusData){
 //		ArrayList<PdfPTable> tables = new ArrayList<>();
-		
 		
 		PdfPTable newTable = new PdfPTable(3);
 		
@@ -746,6 +686,12 @@ public class PDFGeneratorService {
 		newTable.addCell(new Paragraph("Program Name", tableHeaderTitle));// creates header
 		newTable.addCell(new Paragraph("CopyBook Name", tableHeaderTitle));// creates header
 
+		HashSet<String> newHashSet = new HashSet<>();
+		for (FocusData data : focusData) {
+			if(data.getProgramType().trim().equals("I/O FILE")) {
+				//newHash
+			}
+		}
 		for (FocusData data: focusData) {
 //////		newTable.addCell(data.getPSBMember());
 //		newTable.addCell(data.getPGMName());
@@ -754,8 +700,8 @@ public class PDFGeneratorService {
 		if(data.getProgramType().trim().equals("I/O FILE")) {
 			newTable.addCell(data.getProgramName());
 			newTable.addCell(data.getProgramTableOrFileName());
-		
-
+		}else if(!(data.getProgramType().trim().equals("I/O FILE"))) {
+			
 		}
 
 	}
@@ -788,7 +734,6 @@ public class PDFGeneratorService {
 			newTable.addCell(data.getInputOrOutput());
 
 		}
-
 	}
 		
 		return newTable;

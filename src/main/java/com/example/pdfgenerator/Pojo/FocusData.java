@@ -37,6 +37,13 @@ public class FocusData {
 	public void setProgramStep(String programStep) {
 		this.programStep = programStep;
 	}
+	public String getJobName() {
+		return jobName;
+	}
+	public void setJobName(String jobName) {
+		this.jobName = jobName;
+	}
+	private String jobName;
 	private String programName;
 	private String programTableOrFileName;
 	private String programDescription;
