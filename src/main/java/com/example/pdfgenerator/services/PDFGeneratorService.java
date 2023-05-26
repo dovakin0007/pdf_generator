@@ -1,7 +1,7 @@
 package com.example.pdfgenerator.services;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
+
 import java.io.BufferedReader;
 
 import java.io.FileOutputStream;
@@ -13,9 +13,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.TreeMap;
 import java.util.Map;
-import java.util.Iterator;
 import java.util.HashMap;
-import com.example.pdfgenerator.Pojo.CsvData;
+
 import com.example.pdfgenerator.Pojo.ImsSection;
 import com.example.pdfgenerator.Pojo.FocusData;
 import com.example.pdfgenerator.Pojo.FocusSubData;
@@ -39,23 +38,21 @@ import com.lowagie.text.pdf.PdfPageEventHelper;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.ColumnText;
+import com.lowagie.text.pdf.PdfPCell;
 
 import java.io.File;
 
 
 import net.sourceforge.plantuml.SourceStringReader;
-//import com.aspose.diagram.Diagram;
-//import com.aspose.diagram.LayoutDirection;
-//import com.aspose.diagram.Page;
-//import com.aspose.diagram.SaveFileFormat;
-//import com.aspose.diagram.Shape;
-//import com.aspose.diagram.LayoutOptions;
-//import com.aspose.diagram.LayoutStyle;
 
 
 @Service
 public class PDFGeneratorService {
 	
+	private static final int TITLE_FONT_SIZE = 24;
+	private static final int TITLE_SECTION_SIZE = 22;
+	private static final int TITLE_SUB_SECTION_SIZE = 18;
+	private static final String PATH = "C:\\Users\\1000070564\\Downloads\\";
 	
 	public void export(HttpServletResponse response) throws Exception{
 
@@ -74,13 +71,13 @@ public class PDFGeneratorService {
 		
 		HashMap<String, ArrayList<FocusData>> focusMap = new HashMap<>();
 		try {
-			reader = new BufferedReader(new FileReader("C:\\Users\\1000070564\\Downloads\\Job_detail_0523.txt")); //change path where to read
+			reader = new BufferedReader(new FileReader(PATH+"Job_detail_0523.txt")); //change path where to read
 			
-			imsSectionReader = new BufferedReader (new FileReader("C:\\Users\\1000070564\\Downloads\\IMS_Section.txt")); // change path where to read for IMS Db2
+			imsSectionReader = new BufferedReader (new FileReader(PATH+"IMS_Section.txt")); // change path where to read for IMS Db2
 			
-			focusDataReader = new BufferedReader(new FileReader("C:\\Users\\1000070564\\Downloads\\FOC_Final.txt"));
+			focusDataReader = new BufferedReader(new FileReader(PATH+"FOC_Final.txt"));
 			
-			focusSubModuleReader = new BufferedReader(new FileReader("C:\\Users\\1000070564\\Downloads\\FOC_SubM.txt"));
+			focusSubModuleReader = new BufferedReader(new FileReader(PATH+"FOC_SubM.txt"));
 			
 			String imsLine;
 			imsSectionReader.readLine();
@@ -88,27 +85,28 @@ public class PDFGeneratorService {
 			
 			while((imsLine =  imsSectionReader.readLine())!= null) {
 				if (imsLine.contains(String.valueOf('|'))) {
-//					System.out.println(imsLine);
+
 					String[] imsFields = imsLine.split("\\|"); //creating array using split func
 					ImsSection imsSectionObj = new ImsSection();
 					
 //					System.out.println(Arrays.toString(imsFields));
-					imsSectionObj.setPSBMember(imsFields[0]);
-					imsSectionObj.setPGMName(imsFields[1].trim());// key of the Hashmap
-					imsSectionObj.setDBDName(imsFields[2]);
-					imsSectionObj.setDBDProcopt(imsFields[3]);
-					imsSectionObj.setSegement(imsFields[4]);
-					imsSectionObj.setSegProcopt(imsFields[5]);
+					imsSectionObj.setJobName(imsFields[0].trim());
+					imsSectionObj.setPSBMember(imsFields[1].trim());
+					imsSectionObj.setPGMName(imsFields[2].trim());// key of the Hashmap
+					imsSectionObj.setDBDName(imsFields[3].trim());
+					imsSectionObj.setDBDProcopt(imsFields[4].trim());
+					imsSectionObj.setSegement(imsFields[5].trim());
+					imsSectionObj.setSegProcopt(imsFields[6].trim());
 					
-					if (imsMap.containsKey(imsFields[1].trim())) {
-						ArrayList<ImsSection> imsMapArrayList = imsMap.get(imsFields[1].trim());
+					if (imsMap.containsKey(imsFields[0].trim())) {
+						ArrayList<ImsSection> imsMapArrayList = imsMap.get(imsFields[0].trim());
 						imsMapArrayList.add(imsSectionObj);
-						imsMap.put(imsFields[1].trim(), imsMapArrayList);
+						imsMap.put(imsFields[0].trim(), imsMapArrayList);
 					}
 					else {
 						ArrayList<ImsSection> imsMapArrayList = new ArrayList<>();
 						imsMapArrayList.add(imsSectionObj);
- 						imsMap.put(imsFields[1].trim(), imsMapArrayList);
+ 						imsMap.put(imsFields[0].trim(), imsMapArrayList);
 					}
 				}
 				
@@ -194,7 +192,7 @@ public class PDFGeneratorService {
 					focusObj.setProgramType(fields[4].trim());
 					focusObj.setInputOrOutput(fields[5].trim());
 					focusObj.setProgramStep(fields[6].trim());
-					
+					focusObj.setFileName(fields[7]!=null?fields[7].trim():"");
 					if (focusMap.containsKey(fields[0].trim())) {
 						ArrayList<FocusData> focusArray = focusMap.get(fields[0].trim());
 						focusArray.add(focusObj);
@@ -278,16 +276,13 @@ public class PDFGeneratorService {
 							
 						}
 						
-//						for(HashMap<String, String> hash: keyValueFocusSubMapList) {
-//							for(String data: hash.keySet()){
-//								System.out.println(data);
-//							}
-//							System.out.println("");
-//						}
+
 				
 				}
 				HashMap<String, ArrayList<String>> moduleTypesKeyValues = null;
-				if(keyValueFocusSubMapList== null) {}
+				if(keyValueFocusSubMapList== null) {
+					moduleTypesKeyValues = new HashMap<>();
+				}
 				else {
 				moduleTypesKeyValues = new HashMap<>();
 					for (HashMap<String, String>data: keyValueFocusSubMapList) {
@@ -304,9 +299,6 @@ public class PDFGeneratorService {
 							}
 						}
 					}
-//					for(String i : moduleTypesKeyValues.keySet()) {
-//						System.out.println(i + ", " + moduleTypesKeyValues.get(i).toString());
-//					}
 					
 				}
 				
@@ -334,15 +326,10 @@ public class PDFGeneratorService {
 						 }
 					 }
 				}
-				System.out.println(programStepDetails.toString()); //gets program name and related programStep
-				System.out.println(moduleTypesKeyValues.toString());// gets program names and related programs
-//				for(String i : moduleTypesKeyValues.keySet()) {
-//					System.out.println(i + ", " + moduleTypesKeyValues.toString());
-//				}
-//				
+
 			
 				StringBuilder uml = new StringBuilder();
-				File fOS= new File("C:\\Users\\1000070564\\Downloads\\" + mapKey + ".png");
+				File fOS= new File(PATH + mapKey + ".png");
 				FontFactory.register("C:\\Windows\\Fonts\\Calibri");
 				if (appendedStrings.size() == 0) {
 					
@@ -359,8 +346,7 @@ public class PDFGeneratorService {
 					uml.append("--> (*)\n");
 					
 					uml.append("@enduml\n");
-//					
-//					System.out.println(uml.toString());
+
 					SourceStringReader umlReader = new SourceStringReader(uml.toString());
 					
 					FileOutputStream outputPNGFile = new FileOutputStream(fOS);
@@ -369,21 +355,29 @@ public class PDFGeneratorService {
 
 				Document document = new Document(PageSize.A4);
 				try {
-					PdfWriter writer = PdfWriter.getInstance(document ,new FileOutputStream("C:\\Users\\1000070564\\Downloads\\" + mapKey + ".pdf"));//change path where to write
+					PdfWriter writer = PdfWriter.getInstance(document ,new FileOutputStream(PATH + mapKey + ".pdf"));//change path where to write
 //					PdfWriter.getInstance(document, new FileOutputStream(mapKey));
 					writer.setPageEvent(new PageNumberAndMarginHandler());
 					document.open();
 					
 					Font fontTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
-					fontTitle.setSize(18);
+					fontTitle.setSize(TITLE_FONT_SIZE);
 					
 					Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
 					tableHeaderTitle.setSize(14);
 					
-					Paragraph title = new Paragraph("Functional Specification document \n Job-" + mapKey, fontTitle);
-					title.setSpacingAfter(20f);
-					title.setAlignment(Paragraph.ALIGN_CENTER);
+					PdfPCell titleMain =new PdfPCell (new Paragraph("Functional Specification document  Job - " + mapKey +"\n" , fontTitle));
+//					titleMain.setSpacingAfter(20f);
+//					titleMain.setSpacingBefore();
 					
+					titleMain.setPadding(10f);
+//					titleMain.setBorder(2);
+
+					titleMain.setHorizontalAlignment(PdfPCell.ALIGN_CENTER);
+					
+					PdfPTable tableHeadingBox = new PdfPTable(1);
+					tableHeadingBox.setSpacingBefore(10f);
+					tableHeadingBox.addCell(titleMain);
 					
 					//creating table
 					PdfPTable table1 = new PdfPTable(5);
@@ -477,20 +471,22 @@ public class PDFGeneratorService {
 						programTable.addCell(programDescriptions.toString());
 						
 					}
-						
-					document.add(title);
-					document.add(title("Job Details: "));
+//					document.add(new Paragraph("hi"));
+					document.add(new Paragraph(" "));
+					document.add(tableHeadingBox);
+					document.add(titlesection("Job Details: "));
 					document.add(content("Below are the high level job details"));
 					document.add(table1);
+					
 					//adding png file;
 					
 					Paragraph flowChartContentEdited = content("Flow diagram depicting sequence of execution");
 					flowChartContentEdited.setSpacingAfter(25f);
 					flowChartContentEdited.setSpacingBefore(25f);
 					
-					if(new File("C:\\Users\\1000070564\\Downloads\\" + mapKey + ".png").exists()) {
+					if(new File(PATH + mapKey + ".png").exists()) {
 //						document.add(title("FSD Flow chart:"));
-						Image pngFile = Image.getInstance("C:\\Users\\1000070564\\Downloads\\" + mapKey + ".png");
+						Image pngFile = Image.getInstance(PATH + mapKey + ".png");
 						pngFile.scalePercent(60f);
 						pngFile.setAlignment(Image.ALIGN_CENTER);
 //						pngFile.setSpacingAfter(50f);
@@ -510,12 +506,12 @@ public class PDFGeneratorService {
 					}
 					
 					
-					Paragraph prgDetailsTitle = title("Program Details");
+					Paragraph prgDetailsTitle = titlesection("Program Details");
 					prgDetailsTitle.setSpacingBefore(100f);
 					document.add(prgDetailsTitle);
 					document.add(content("Below programs are part of this job which performs given actions."));
 					document.add(programTable);	
-					document.add(title("Databases"));
+					document.add(titlesection("Databases"));
 					Paragraph indentendIMSDBName = title("IMS Databases");
 					Paragraph imsDBContent = content("Below IMS databases are in use by respective programs. "
 							+ "These programs can perform below actions on Database / Segment within the database. ");
@@ -525,8 +521,56 @@ public class PDFGeneratorService {
 					document.add(indentendIMSDBName);
 					document.add(imsDBContent);
 					
+					
+					
+					HashSet<String> prgNamesForPl1 = new HashSet<>();
+					for (String pl1IMSProgramName: imsMap.keySet()) {
+						if(imsMap.containsKey(pl1IMSProgramName)) {
+							for (ImsSection e :imsMap.get(pl1IMSProgramName)) {
+								prgNamesForPl1.add(e.getPGMName().trim());
+							}
+							
+						}
+					}
+					
+//					for(String i: prgNamesForPl1) {
+//						System.out.println(i);
+//					}
+//					
+					
+					//creating IMS database for pl1
+					ArrayList <ImsSection> sortedIMSData =   new ArrayList<>();
+					if (imsMap.containsKey(mapKey)) {
+						for(ImsSection i:imsMap.get(mapKey)) {
+							sortedIMSData.add(i);
+						}
+					}
+					
+					
+					
+					for(String titleImsPl1Data: prgNamesForPl1) {
+						ArrayList <ImsSection> imsDataToBePrinted =   new ArrayList<>();
+						for(ImsSection imsPl1: sortedIMSData) {
+//							System.out.println(imsPl1.getPGMName());
+							if (titleImsPl1Data.equals(imsPl1.getPGMName().trim())) {
+								 imsDataToBePrinted.add(imsPl1);
+//								 System.out.println("Ok");
+							}
+							
+						}
+						if (!(imsDataToBePrinted.isEmpty())) {
+							Paragraph indentedSubTitle = title(titleImsPl1Data + " - PL/1");
+//						document.add(title(data));
+							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
+							indentedSubTitle.setFont(fontForSubTitle);
+							indentedSubTitle.setIndentationLeft(100f);
+							document.add(indentedSubTitle);
+							document.add(pgmTablesSCLM(imsDataToBePrinted, titleImsPl1Data));
+						}
+					}
+						
 					//creating table
-					HashSet<String> keysForIMSMapSCLM = new HashSet<>();
+//					HashSet<String> keysForIMSMapSCLM = new HashSet<>();
 					HashSet<String> onlyFKProgramName = new HashSet<>();
 //					ArrayList
 					
@@ -593,26 +637,26 @@ public class PDFGeneratorService {
 					}
 					
 					
-					if(keysForIMSMapSCLM.contains(null)) {
-						document.add(content("NA"));
-					}else {
-					
-					for (String data: keysForIMSMapSCLM) {
-//						
-						if (imsMap.containsKey(data)) {
-							
-							Paragraph indentedSubTitle = title(data + "-SCLM");
-//							document.add(title(data));
-							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
-							indentedSubTitle.setFont(fontForSubTitle);
-							indentedSubTitle.setIndentationLeft(100f);
-							document.add(indentedSubTitle);
-							ArrayList<ImsSection> pgmTablesEntry = imsMap.get(data);
-							
-							document.add(pgmTablesSCLM(pgmTablesEntry));
-							}					
-						}
-					}
+//					if(keysForIMSMapSCLM.contains(null)) {
+//						document.add(content("NA"));
+//					}else {
+//					
+//					for (String data: keysForIMSMapSCLM) {
+////						
+//						if (imsMap.containsKey(data)) {
+//							
+//							Paragraph indentedSubTitle = title(data + "-SCLM");
+////							document.add(title(data));
+//							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
+//							indentedSubTitle.setFont(fontForSubTitle);
+//							indentedSubTitle.setIndentationLeft(100f);
+//							document.add(indentedSubTitle);
+//							ArrayList<ImsSection> pgmTablesEntry = imsMap.get(data);
+//							
+////							document.add(pgmTablesSCLM(pgmTablesEntry));
+//							}					
+//						}
+//					}
 //					for(String i: keysForIMSMapFocus) {
 ////						System.out.println(i);
 //					}
@@ -623,13 +667,7 @@ public class PDFGeneratorService {
 				
 					else {
 					for (String data: keysForIMSMapFocus) {
-//						System.out.println(data);
-//						System.out.println(data.getMainProgram().trim() + ", " + (imsMap.get("AASA321")).get(0).getPGMName());
-//						System.out.println();
-							
 
-					
-							
 						Paragraph indentedSubTitle = title(data + "-FOCUS");
 //							document.add(title(data));
 							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
@@ -668,12 +706,7 @@ public class PDFGeneratorService {
 					
 					document.add(indentendDB2DBName);
 					document.add(indentedDB2Content);
-					for (String data: keysForDb2Tables) {
-//						System.out.println(data);
-//						System.out.println(data.getMainProgram().trim() + ", " + (imsMap.get("AASA321")).get(0).getPGMName());
-//						System.out.println();
-							
-					
+					for (String data: keysForDb2Tables) {					
 //							document.add(title(data));
 							
 						Paragraph indentedSubTitle = title(data);
@@ -687,8 +720,8 @@ public class PDFGeneratorService {
 					
 					}
 					
-					Paragraph indentedCopyBookName = title("CopyBook Details");
-					indentedCopyBookName.setIndentationLeft(50f);
+					Paragraph indentedCopyBookName = titlesection("CopyBook Details");
+					//indentedCopyBookName.setIndentationLeft(50f);
 					
 					Paragraph indentedCopyBookDetails = content("This section provides the details of copybooks.");
 					indentedCopyBookDetails.setIndentationLeft(50f);
@@ -696,10 +729,6 @@ public class PDFGeneratorService {
 					document.add(indentedCopyBookName);
 					document.add(indentedCopyBookDetails);
 					for (String data: keysForCopyBookTables) {
-//						System.out.println(data);
-//						System.out.println(data.getMainProgram().trim() + ", " + (imsMap.get("AASA321")).get(0).getPGMName());
-//						System.out.println();
-							
 				
 						Paragraph indentedSubTitle = title(data);
 //							document.add(title(data));
@@ -712,16 +741,11 @@ public class PDFGeneratorService {
 												
 					}
 					
-					Paragraph indentedInputOutput = title("Input/Output Files");
-					indentedInputOutput.setIndentationLeft(50f);
+					Paragraph indentedInputOutput = titlesection("Input/Output Files");
+					//indentedInputOutput.setIndentationLeft(50f);
 					
 					document.add(indentedInputOutput);
-					for (String data: keysForIOTables) {
-//						System.out.println(data);
-//						System.out.println(data.getMainProgram().trim() + ", " + (imsMap.get("AASA321")).get(0).getPGMName());
-//						System.out.println();
-							
-					
+					for (String data: keysForIOTables) {	
 //							document.add(title(data));
 						Paragraph indentedSubTitle = title(data);
 //							document.add(title(data));
@@ -767,6 +791,19 @@ public class PDFGeneratorService {
 		return paragraph2;
 	}
 	
+	public Paragraph titlesection(String contentTitle) throws DocumentException, IOException {
+		Font fontParagraph = FontFactory.getFont(FontFactory.TIMES_BOLD);
+		Font someFont = new Font(BaseFont.createFont(), TITLE_SUB_SECTION_SIZE,Font.UNDERLINE | Font.BOLD  );
+		fontParagraph.setSize(TITLE_SUB_SECTION_SIZE);
+		
+		Paragraph paragraph2 = new Paragraph(contentTitle, someFont);
+		paragraph2.setIndentationLeft(10f);
+		paragraph2.setAlignment(Paragraph.ALIGN_LEFT);
+		paragraph2.setSpacingAfter(20f);
+		paragraph2.setSpacingBefore(20f);
+		return paragraph2;
+	}
+	
 	public Paragraph content(String content) {
 		Font fontParagraph = FontFactory.getFont(FontFactory.TIMES);
 		fontParagraph.setSize(14);
@@ -780,7 +817,7 @@ public class PDFGeneratorService {
 		
 	}
 	
-	public PdfPTable pgmTablesSCLM(ArrayList<ImsSection> ImsData){
+	public PdfPTable pgmTablesSCLM(ArrayList<ImsSection> ImsData, String key){
 //		ArrayList<PdfPTable> tables = new ArrayList<>();
 		
 		
@@ -831,10 +868,10 @@ public class PDFGeneratorService {
 			}
 			else {
 				newTable.addCell(data.getSegProcopt());
-//				System.out.println(data.getSegProcopt().trim() == "");
 			}
 		}
-		
+		newTable.setSpacingAfter(20);
+		newTable.setSpacingBefore(20);
 		return newTable;
 		
 	}
@@ -877,6 +914,8 @@ public class PDFGeneratorService {
 			newTable.addCell("NA");
 			newTable.addCell("NA");
 		}
+		newTable.setSpacingAfter(20);
+		newTable.setSpacingBefore(20);
 
 		return newTable;
 		
@@ -903,12 +942,13 @@ public class PDFGeneratorService {
 //			newTable.addCell(data.getDBDProcopt());
 			if(data.getProgramType().trim().equals("DB2 TABLE") && data.getProgramName().trim().equals(key)) {
 				newTable.addCell(data.getProgramName());
-				newTable.addCell(data.getProgramTableOrFileName());
+				newTable.addCell(data.getProgramDescription());
 				newTable.addCell("NA");
 			}
 
 		}
-		
+		newTable.setSpacingAfter(20);
+		newTable.setSpacingBefore(20);
 		return newTable;
 		
 	}
@@ -947,42 +987,65 @@ public class PDFGeneratorService {
 //		ArrayList<PdfPTable> tables = new ArrayList<>();
 		
 		
-		PdfPTable newTable = new PdfPTable(3);
+		PdfPTable newTable = new PdfPTable(4);
 		
 		Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
 		tableHeaderTitle.setSize(14);
 		
 //		newTable.addCell(new Paragraph("PSB PDS MEMBER", tableHeaderTitle));// creates header
 		newTable.addCell(new Paragraph("Program Name", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("DD Name", tableHeaderTitle));// creates header
 		newTable.addCell(new Paragraph("File Name", tableHeaderTitle));// creates header
 		newTable.addCell(new Paragraph("Usage(Input / Output)", tableHeaderTitle));// creates header
 		
 		for (FocusData data: focusData) {
-//////		newTable.addCell(data.getPSBMember());
-//		newTable.addCell(data.getPGMName());
-//		newTable.addCell(data.getDBDName());
-//		newTable.addCell(data.getDBDProcopt());
-		System.out.println(data.getProgramName());
+
+
 		if(data.getProgramType().trim().equals("I/O FILE") && data.getProgramName().trim().equals(key)) {
 			newTable.addCell(data.getProgramName());
 			newTable.addCell(data.getProgramTableOrFileName());
+			newTable.addCell(data.getFileName());
 			newTable.addCell(data.getInputOrOutput());
 
 		}
 	}
 		
+		newTable.setSpacingAfter(20);
+		newTable.setSpacingBefore(20);
 		return newTable;
 		
 	}
 	
 	private static class PageNumberAndMarginHandler extends PdfPageEventHelper{
+		private Image image;
+		
+		@Override
+		public void onOpenDocument(PdfWriter writter, Document document) {
+			try {
+				image = Image.getInstance("C:\\Users\\1000070564\\Downloads\\hexaware.jfif");
+				image.scaleToFit(50, 70);
+			}catch (IOException | DocumentException e) {
+				e.printStackTrace();
+			}
+		}
 		
 		@Override
 		public void onEndPage(PdfWriter writer, Document document) {
 			PdfContentByte canvas = writer.getDirectContent();
 			
+			float imageX = document.right() - image.getScaledWidth() - 10;
+			float imageY = document.top() - 1;
+			
+			try {
+				image.setAbsolutePosition(imageX, imageY);
+				canvas.addImage(image);
+			}catch(DocumentException e) {
+				e.printStackTrace();
+			}
+			
+			
 			int pageNumber = writer.getPageNumber();
-			float x = document.right() -50;
+			float x = document.right() -40;
 			float y = document.bottom() - 20;
 			
 			Phrase pageNumberPhrase = new Phrase("Page " + pageNumber);

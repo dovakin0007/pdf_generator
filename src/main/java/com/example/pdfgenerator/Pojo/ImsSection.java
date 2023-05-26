@@ -1,12 +1,14 @@
 package com.example.pdfgenerator.Pojo;
 
 public class ImsSection {
+	private String JobName = "";
 	private String PSBMember="";
 	private String PGMName="";
 	private String DBDName="";
 	private String DBDProcopt="";
 	private String Segement="";
 	private String SegProcopt="";
+	
 	
 	
 	public String getPSBMember() {
@@ -44,5 +46,11 @@ public class ImsSection {
 	}
 	public void setSegProcopt(String segProcopt) {
 		SegProcopt = segProcopt;
+	}
+	public String getJobName() {
+		return JobName;
+	}
+	public void setJobName(String jobName) {
+		JobName = jobName;
 	}
 }

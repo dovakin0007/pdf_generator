@@ -1,0 +1,6 @@
+JFOC01  |FOCPG01S|FOCPG11S|        |        |        |        |
+JFOC01  |FOCPG01S|FOCPG12S|FOCPG19S|        |        |        |
+JFOC01  |FOCPG01S|FOCPG13S|        |        |        |        |
+JFOC01  |FOCPG01S|FOCPG14S|        |        |        |        |
+JFOC02  |FOCPG02S|        |        |        |        |        |
+JFOC03  |FOCPG03S|FOCPG31S|        |        |        |        |
