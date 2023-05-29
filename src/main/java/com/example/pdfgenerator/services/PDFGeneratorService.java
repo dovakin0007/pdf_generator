@@ -692,32 +692,7 @@ public class PDFGeneratorService {
 						}
 		
 					}
-					
-					
-//					if(keysForIMSMapSCLM.contains(null)) {
-//						document.add(content("NA"));
-//					}else {
-//					
-//					for (String data: keysForIMSMapSCLM) {
-////						
-//						if (imsMap.containsKey(data)) {
-//							
-//							Paragraph indentedSubTitle = title(data + "-SCLM");
-////							document.add(title(data));
-//							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
-//							indentedSubTitle.setFont(fontForSubTitle);
-//							indentedSubTitle.setIndentationLeft(100f);
-//							document.add(indentedSubTitle);
-//							ArrayList<ImsSection> pgmTablesEntry = imsMap.get(data);
-//							
-////							document.add(pgmTablesSCLM(pgmTablesEntry));
-//							}					
-//						}
-//					}
-//					for(String i: keysForIMSMapFocus) {
-////						System.out.println(i);
-//					}
-					
+						
 					if (keysForIMSMapFocus.contains(null)) {
 						document.add(content("NA"));
 					}
@@ -810,6 +785,7 @@ public class PDFGeneratorService {
 							}
 						}
 						if (!(dataToBeAddedPl1.isEmpty())) {
+							document.add(indentedSubTitle);
 							document.add(copyBookTables(dataToBeAddedPl1));
 						}
 					}
@@ -885,8 +861,7 @@ public class PDFGeneratorService {
 					tableHeaderTitle.setSize(14);
 					
 					PdfPCell titleMain =new PdfPCell (new Paragraph("Functional Specification document  Job - " + mapKey +"\n" , fontTitle));
-//					titleMain.setSpacingAfter(20f);
-//					titleMain.setSpacingBefore();
+
 					
 					titleMain.setPadding(10f);
 //					titleMain.setBorder(2);
@@ -1063,6 +1038,9 @@ public class PDFGeneratorService {
 							indentedSubTitle.setIndentationLeft(100f);
 							document.add(indentedSubTitle);
 							document.add(pgmTablesSCLM(imsDataToBePrinted, titleImsPl1Data));
+						}else {
+							document.add(content("NA"));
+							break;
 						}
 					}
 					
@@ -1092,7 +1070,7 @@ public class PDFGeneratorService {
 					}
 					
 					Paragraph indentedCopyBookName = titlesection("CopyBook Details");
-					//indentedCopyBookName.setIndentationLeft(50f);
+
 					
 					Paragraph indentedCopyBookDetails = content("This section provides the details of copybooks.");
 					indentedCopyBookDetails.setIndentationLeft(50f);
