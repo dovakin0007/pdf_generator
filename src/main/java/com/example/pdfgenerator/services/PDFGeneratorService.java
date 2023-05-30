@@ -76,18 +76,18 @@ public class PDFGeneratorService {
 		
 		HashMap<String, ArrayList<Pl1Details>> pl1Map = new HashMap<>();
 		try {
-			reader = new BufferedReader(new FileReader(PATH+"Job_details (1).txt")); //change path where to read
+			reader = new BufferedReader(new FileReader(PATH+"Job_Details1.txt")); //change path where to read
 			
-			imsSectionReader = new BufferedReader (new FileReader(PATH+"IMS_Section (1).txt")); // change path where to read for IMS Db2
+			imsSectionReader = new BufferedReader (new FileReader(PATH+"IMS_Section (2).txt")); // change path where to read for IMS Db2
 			
-			focusDataReader = new BufferedReader(new FileReader(PATH+"FOC_Det (1).txt"));
+			focusDataReader = new BufferedReader(new FileReader(PATH+"FOC_Det (2).txt"));
 			
-			focusSubModuleReader = new BufferedReader(new FileReader(PATH+"FOC_SubM (1).txt"));
+			focusSubModuleReader = new BufferedReader(new FileReader(PATH+"FOC_SubM (2).txt"));
 			
 			
 			
 			if(new File(PATH + "PL1_Det" + ".txt").exists()) {				
-				pl1Reader = new BufferedReader(new FileReader(PATH + "PL1_Det.txt"));
+				pl1Reader = new BufferedReader(new FileReader(PATH + "PL1_Det (1).txt"));
 				String pl1Line;
 				while((pl1Line = pl1Reader.readLine())!= null) {
 					if (pl1Line.contains(String.valueOf('|'))) {
@@ -259,8 +259,17 @@ public class PDFGeneratorService {
 					}
 					else {
 						String newString = i.getStepDescription();
-					
-						appendedStrings.add(newString);
+						if(appendedStrings.isEmpty()) {
+							appendedStrings.add(newString);
+						}
+						else {
+						if(appendedStrings.get(appendedStrings.size()-1).equals(newString)) {
+							
+						}else {
+						
+							appendedStrings.add(newString);
+						}
+					}
 					}
 				}
 				ArrayList<HashMap<String, String>> keyValueFocusSubMapList = null ;
@@ -589,13 +598,7 @@ public class PDFGeneratorService {
 							
 						}
 					}
-					
-//					for(String i: prgNamesForPl1) {
-//						System.out.println(i);
-//					}
-//					
-					
-					//creating IMS database for pl1
+
 					ArrayList <ImsSection> sortedIMSData =   new ArrayList<>();
 					if (imsMap.containsKey(mapKey)) {
 						for(ImsSection i:imsMap.get(mapKey)) {
@@ -603,7 +606,12 @@ public class PDFGeneratorService {
 						}
 					}
 					
-					
+					HashMap<String, String> prgNamesAndPrgType = new HashMap<>();
+					if (pl1Map.containsKey(mapKey)) {
+						for(Pl1Details x:pl1Map.get(mapKey)){
+							prgNamesAndPrgType.put(x.getProgramName().trim(), x.getProgramType());
+						}
+					}
 					
 					for(String titleImsPl1Data: prgNamesForPl1) {
 						ArrayList <ImsSection> imsDataToBePrinted =   new ArrayList<>();
@@ -616,7 +624,14 @@ public class PDFGeneratorService {
 							
 						}
 						if (!(imsDataToBePrinted.isEmpty())) {
-							Paragraph indentedSubTitle = title(titleImsPl1Data + " - PL/1");
+							
+							Paragraph indentedSubTitle ;
+							if (prgNamesAndPrgType.containsKey(titleImsPl1Data)) {
+							 indentedSubTitle = title(titleImsPl1Data + " - " + prgNamesAndPrgType.get(titleImsPl1Data));
+							}else {
+							 indentedSubTitle = title(titleImsPl1Data + " - PL1");
+							}
+						
 //						document.add(title(data));
 							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
 							indentedSubTitle.setFont(fontForSubTitle);
@@ -645,7 +660,17 @@ public class PDFGeneratorService {
 					if(focusMap.containsKey(mapKey)) {
 						for(FocusData j: focusMap.get(mapKey)) {
 							if(mapKey.equals(j.getJobName()) && j.getProgramType().equals("IMS DATABASE")) {
-								focusDataToBeAdded.add(j);
+								if (focusDataToBeAdded.isEmpty()) {
+									focusDataToBeAdded.add(j);
+								}else {
+									int lengthOfFocusData = focusDataToBeAdded.size();
+									FocusData prevFocusData = focusDataToBeAdded.get(lengthOfFocusData - 1);
+									if(prevFocusData.getProgramName().trim().equals(j.getProgramName().trim())) {
+										
+									}else {
+										focusDataToBeAdded.add(j);
+									}
+								}
 								keysForIMSMapFocus.add(j.getProgramName().trim());
 							}
 						}
@@ -698,6 +723,7 @@ public class PDFGeneratorService {
 					}
 				
 					else {
+										
 					for (String data: keysForIMSMapFocus) {
 
 						Paragraph indentedSubTitle = title(data + "-FOCUS");
@@ -711,21 +737,22 @@ public class PDFGeneratorService {
 							
 						}
 					
-						document.add(content("G - Get / Read"
-								+ "\r\n"
-								+ "GOT - Get When database is allocated to other process in exclusive mode"
-								+ "\r\n"
-								+ "I - Insert"
-								+ "\r\n"
-								+ "R - Replace"
-								+ "\r\n"
-								+ "D - Delete"
-								+ "\r\n"
-								+ "A - All actions"
-								+ "\r\n"
-								+ "P - Path Call"));
-					}
+					document.add(content("G - Get / Read"
+							+ "\r\n"
+							+ "GOT - Get When database is allocated to other process in exclusive mode"
+							+ "\r\n"
+							+ "I - Insert"
+							+ "\r\n"
+							+ "R - Replace"
+							+ "\r\n"
+							+ "D - Delete"
+							+ "\r\n"
+							+ "A - All actions"
+							+ "\r\n"
+							+ "P - Path Call"));
 				
+
+					}
 					
 					
 					Paragraph indentendDB2DBName = title("DB2 Databases");
@@ -737,21 +764,27 @@ public class PDFGeneratorService {
 					
 					
 					document.add(indentendDB2DBName);
-					document.add(indentedDB2Content);
-					for (String data: keysForDb2Tables) {					
+
+					
+					if(keysForDb2Tables.isEmpty()) {
+						document.add(content("NA"));
+					}
+					else {
+						document.add(indentedDB2Content);
+						for (String data: keysForDb2Tables) {					
 //							document.add(title(data));
 							
-						Paragraph indentedSubTitle = title(data);
+							Paragraph indentedSubTitle = title(data);
 //							document.add(title(data));
-						Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
-						indentedSubTitle.setFont(fontForSubTitle);
-						indentedSubTitle.setIndentationLeft(100f);
-						document.add(indentedSubTitle);	
+							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
+							indentedSubTitle.setFont(fontForSubTitle);
+							indentedSubTitle.setIndentationLeft(100f);
+							document.add(indentedSubTitle);	
 //						ArrayList<FocusData> pgmTablesEntry = focusDataToBeAddedDb2;
-						document.add(db2Tables(focusDataToBeAddedDb2, data));
+							document.add(db2Tables(focusDataToBeAddedDb2, data));
 					
+						}
 					}
-					
 					
 					
 					HashSet<String> newKeysForCopyBookDetails = new HashSet<>();
@@ -770,25 +803,38 @@ public class PDFGeneratorService {
 					indentedCopyBookDetails.setIndentationLeft(50f);
 					
 					document.add(indentedCopyBookName);
-					document.add(indentedCopyBookDetails);
-					for (String data: newKeysForCopyBookDetails) {
-				
+
+					if (newKeysForCopyBookDetails.isEmpty()) {
+						document.add(content("NA"));
+					}else {
+						document.add(indentedCopyBookDetails);
+						
+						ArrayList<Pl1Details> dataToBeAddedPl1 = new ArrayList<>();
+						for (String data: newKeysForCopyBookDetails) {
+						
 						Paragraph indentedSubTitle = title(data);
 //							document.add(title(data));
 						Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
 						indentedSubTitle.setFont(fontForSubTitle);
 						indentedSubTitle.setIndentationLeft(100f);
-						ArrayList<Pl1Details> dataToBeAddedPl1 = new ArrayList<>();
+						
 						for(Pl1Details dataToBeAddedPl1CopyBook:pl1Map.get(mapKey)) {
 							if (data.equals(dataToBeAddedPl1CopyBook.getProgramName())) {
 								dataToBeAddedPl1.add(dataToBeAddedPl1CopyBook);
+								
 							}
 						}
-						if (!(dataToBeAddedPl1.isEmpty())) {
-							document.add(indentedSubTitle);
-							document.add(copyBookTables(dataToBeAddedPl1));
-						}
+						
 					}
+					if (!(dataToBeAddedPl1.isEmpty())) {
+						document.add(copyBookTables(dataToBeAddedPl1));
+					}
+		
+					}
+					
+//					if (!(newKeysForCopyBookDetails.isEmpty())) {
+//						
+//					}
 					
 					Paragraph indentedInputOutput = titlesection("Input/Output Files");
 					//indentedInputOutput.setIndentationLeft(50f);
@@ -802,8 +848,11 @@ public class PDFGeneratorService {
 						indentedSubTitle.setFont(fontForSubTitle);
 						indentedSubTitle.setIndentationLeft(100f);
 						document.add(indentedSubTitle);
-						
-						document.add(inputOutputTables(focusDataToBeAddedIO , data));
+						if(!(focusDataToBeAddedIO.isEmpty())) {
+							document.add(inputOutputTables(focusDataToBeAddedIO , data));
+						}else {
+							document.add(content("NA"));	
+						}
 						}					
 					
 					
@@ -985,13 +1034,21 @@ public class PDFGeneratorService {
 					document.add(programTable);	
 					document.add(titlesection("Databases"));
 					Paragraph indentendIMSDBName = title("IMS Databases");
+					HashMap<String, String> prgNamesAndPrgType = new HashMap<>();
+					
+					if (pl1Map.containsKey(mapKey)) {
+						for(Pl1Details x:pl1Map.get(mapKey)){
+							prgNamesAndPrgType.put(x.getProgramName().trim(), x.getProgramType());
+						}
+					}
+				
 					Paragraph imsDBContent = content("Below IMS databases are in use by respective programs. "
 							+ "These programs can perform below actions on Database / Segment within the database. ");
 					imsDBContent.setIndentationLeft(50f);
 					indentendIMSDBName.setIndentationLeft(50f);
 					
 					document.add(indentendIMSDBName);
-					document.add(imsDBContent);
+					
 					
 					
 					
@@ -1018,8 +1075,9 @@ public class PDFGeneratorService {
 						}
 					}
 					
-					
-					
+					if(imsMap.containsKey(mapKey)) {
+					if(!(prgNamesForPl1.isEmpty())) {
+						document.add(imsDBContent);
 					for(String titleImsPl1Data: prgNamesForPl1) {
 						ArrayList <ImsSection> imsDataToBePrinted =   new ArrayList<>();
 						for(ImsSection imsPl1: sortedIMSData) {
@@ -1031,35 +1089,42 @@ public class PDFGeneratorService {
 							
 						}
 						if (!(imsDataToBePrinted.isEmpty())) {
-							Paragraph indentedSubTitle = title(titleImsPl1Data + " - SCLM");
-//						document.add(title(data));
+							Paragraph indentedSubTitle ;
+							if (prgNamesAndPrgType.containsKey(titleImsPl1Data)) {
+							 indentedSubTitle = title(titleImsPl1Data + " - " + prgNamesAndPrgType.get(titleImsPl1Data));
+						}else {
+							 indentedSubTitle = title(titleImsPl1Data + " - PL1");
+						}
+							
+							//document.add(title(data));
 							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
 							indentedSubTitle.setFont(fontForSubTitle);
 							indentedSubTitle.setIndentationLeft(100f);
 							document.add(indentedSubTitle);
 							document.add(pgmTablesSCLM(imsDataToBePrinted, titleImsPl1Data));
-						}else {
-							document.add(content("NA"));
-							break;
+							document.add(content("G - Get / Read"
+									+ "\r\n"
+									+ "GOT - Get When database is allocated to other process in exclusive mode"
+									+ "\r\n"
+									+ "I - Insert"
+									+ "\r\n"
+									+ "R - Replace"
+									+ "\r\n"
+									+ "D - Delete"
+									+ "\r\n"
+									+ "A - All actions"
+									+ "\r\n"
+									+ "P - Path Call"));
 						}
 					}
-					
+					}else {
+						document.add(content("NA"));
+					}
+					}else {
+						document.add(content("NA"));
+					}
 
-					document.add(content("G - Get / Read"
-							+ "\r\n"
-							+ "GOT - Get When database is allocated to other process in exclusive mode"
-							+ "\r\n"
-							+ "I - Insert"
-							+ "\r\n"
-							+ "R - Replace"
-							+ "\r\n"
-							+ "D - Delete"
-							+ "\r\n"
-							+ "A - All actions"
-							+ "\r\n"
-							+ "P - Path Call"));
 	
-					
 					HashSet<String> newKeysForCopyBookDetails = new HashSet<>();
 					if (pl1Map.containsKey(mapKey)) {
 						for(Pl1Details pl1Dets: pl1Map.get(mapKey)) {
@@ -1076,31 +1141,39 @@ public class PDFGeneratorService {
 					indentedCopyBookDetails.setIndentationLeft(50f);
 					
 					document.add(indentedCopyBookName);
-					document.add(indentedCopyBookDetails);
-					for (String data: newKeysForCopyBookDetails) {
+					
+					if (newKeysForCopyBookDetails.isEmpty()) {
+						document.add(content("NA"));
+					}else {
+						document.add(indentedCopyBookDetails);
+						ArrayList<Pl1Details> dataToBeAddedPl1 = new ArrayList<>();
+						for (String data: newKeysForCopyBookDetails) {
 				
 						Paragraph indentedSubTitle = title(data);
 //							document.add(title(data));
 						Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
 						indentedSubTitle.setFont(fontForSubTitle);
 						indentedSubTitle.setIndentationLeft(100f);
-						ArrayList<Pl1Details> dataToBeAddedPl1 = new ArrayList<>();
+					
 						for(Pl1Details dataToBeAddedPl1CopyBook:pl1Map.get(mapKey)) {
 							if (data.equals(dataToBeAddedPl1CopyBook.getProgramName())) {
 								dataToBeAddedPl1.add(dataToBeAddedPl1CopyBook);
+								
 							}
 						}
-						if (!(dataToBeAddedPl1.isEmpty())) {
-							document.add(copyBookTables(dataToBeAddedPl1));
-						}
+						
+					}
+					if (!(dataToBeAddedPl1.isEmpty())) {
+						document.add(copyBookTables(dataToBeAddedPl1));
 					}
 		
-					
+					}
 					
 					Paragraph indentedInputOutput = titlesection("Input/Output Files");
 					//indentedInputOutput.setIndentationLeft(50f);
 					
 					document.add(indentedInputOutput);
+					document.add(content("NA"));
 					document.close();
 					
 	
