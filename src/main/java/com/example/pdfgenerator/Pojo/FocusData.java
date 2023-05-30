@@ -49,6 +49,12 @@ public class FocusData {
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
+	public String getProgramType2() {
+		return programType2;
+	}
+	public void setProgramType2(String programType2) {
+		this.programType2 = programType2;
+	}
 	private String jobName;
 	private String programName;
 	private String programTableOrFileName;
@@ -57,5 +63,5 @@ public class FocusData {
 	private String inputOrOutput;
 	private String programStep;
 	private String fileName;
-	
+	private String programType2 = "Focus";
 }
