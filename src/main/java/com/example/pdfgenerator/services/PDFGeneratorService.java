@@ -76,18 +76,18 @@ public class PDFGeneratorService {
 		
 		HashMap<String, ArrayList<Pl1Details>> pl1Map = new HashMap<>();
 		try {
-			reader = new BufferedReader(new FileReader(PATH+"Job_Details1.txt")); //change path where to read
+			reader = new BufferedReader(new FileReader(PATH+"Job_Details1 (1).txt")); //change path where to read
 			
-			imsSectionReader = new BufferedReader (new FileReader(PATH+"IMS_Section (2).txt")); // change path where to read for IMS Db2
+			imsSectionReader = new BufferedReader (new FileReader(PATH+"IMS_Section (3).txt")); // change path where to read for IMS Db2
 			
-			focusDataReader = new BufferedReader(new FileReader(PATH+"FOC_Det (2).txt"));
+			focusDataReader = new BufferedReader(new FileReader(PATH+"FOC_Det (3).txt"));
 			
-			focusSubModuleReader = new BufferedReader(new FileReader(PATH+"FOC_SubM (2).txt"));
+			focusSubModuleReader = new BufferedReader(new FileReader(PATH+"FOC_SubM1 (1).txt"));
 			
 			
 			
 			if(new File(PATH + "PL1_Det" + ".txt").exists()) {				
-				pl1Reader = new BufferedReader(new FileReader(PATH + "PL1_Det (1).txt"));
+				pl1Reader = new BufferedReader(new FileReader(PATH + "PL1_Det (2).txt"));
 				String pl1Line;
 				while((pl1Line = pl1Reader.readLine())!= null) {
 					if (pl1Line.contains(String.valueOf('|'))) {
@@ -407,7 +407,7 @@ public class PDFGeneratorService {
 
 				Document document = new Document(PageSize.A4);
 				try {
-					PdfWriter writer = PdfWriter.getInstance(document ,new FileOutputStream(PATH + mapKey + ".pdf"));//change path where to write
+					PdfWriter writer = PdfWriter.getInstance(document ,new FileOutputStream("C:\\Users\\1000070564\\Documents\\FSD-Documents\\" + mapKey + ".pdf"));//change path where to write
 //					PdfWriter.getInstance(document, new FileOutputStream(mapKey));
 					writer.setPageEvent(new PageNumberAndMarginHandler());
 					document.open();
@@ -619,34 +619,7 @@ public class PDFGeneratorService {
 						}
 					}
 					
-					for(String titleImsPl1Data: prgNamesForPl1) {
-						ArrayList <ImsSection> imsDataToBePrinted =   new ArrayList<>();
-						for(ImsSection imsPl1: sortedIMSData) {
-//							System.out.println(imsPl1.getPGMName());
-							if (titleImsPl1Data.equals(imsPl1.getPGMName().trim())) {
-								 imsDataToBePrinted.add(imsPl1);
-//								 System.out.println("Ok");
-							}
-							
-						}
-						if (!(imsDataToBePrinted.isEmpty())) {
-							
-							Paragraph indentedSubTitle ;
-							if (prgNamesAndPrgType.containsKey(titleImsPl1Data)) {
-							 indentedSubTitle = title(titleImsPl1Data + " - " + prgNamesAndPrgType.get(titleImsPl1Data));
-							}else {
-							 indentedSubTitle = title(titleImsPl1Data + " - PL1");
-							}
-						
-//						document.add(title(data));
-							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
-							indentedSubTitle.setFont(fontForSubTitle);
-							indentedSubTitle.setIndentationLeft(100f);
-							document.add(indentedSubTitle);
-							document.add(pgmTablesSCLM(imsDataToBePrinted, titleImsPl1Data));
-						}
-					}
-						
+
 					//creating table
 //					HashSet<String> keysForIMSMapSCLM = new HashSet<>();
 					HashSet<String> onlyFKProgramName = new HashSet<>();
@@ -725,6 +698,10 @@ public class PDFGeneratorService {
 					}
 					
 	
+					
+					if (prgNamesForPl1.isEmpty() &&focusDataToBeAdded.isEmpty()) {
+						document.add(content("NA"));
+					}else {
 					for(String titleImsPl1Data: prgNamesForPl1) {
 						ArrayList <ImsSection> imsDataToBePrinted =  new ArrayList<>();
 						for(ImsSection imsPl1: sortedIMSData) {
@@ -734,22 +711,27 @@ public class PDFGeneratorService {
 //									 System.out.println("Ok");
 							}	
 						}
-							if (!(imsDataToBePrinted.isEmpty())) {
-								Paragraph indentedSubTitle ;
-							if (prgNamesAndPrgType.containsKey(titleImsPl1Data)) {
-								indentedSubTitle = title(titleImsPl1Data + " - " + prgNamesAndPrgType.get(titleImsPl1Data));
-							}else {
-								indentedSubTitle = title(titleImsPl1Data + " - PL1");
-							}
-								
-								//document.add(title(data));
-								Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
-								indentedSubTitle.setFont(fontForSubTitle);
-								indentedSubTitle.setIndentationLeft(100f);
-								document.add(indentedSubTitle);
-								document.add(pgmTablesSCLM(imsDataToBePrinted, titleImsPl1Data));
+						if (!(imsDataToBePrinted.isEmpty())) {
+							Paragraph indentedSubTitle ;
+						if (prgNamesAndPrgType.containsKey(titleImsPl1Data)) {
+							indentedSubTitle = title(titleImsPl1Data + " - " + prgNamesAndPrgType.get(titleImsPl1Data));
+							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
+							indentedSubTitle.setFont(fontForSubTitle);
+							indentedSubTitle.setIndentationLeft(100f);
+							document.add(indentedSubTitle);
+							document.add(pgmTablesSCLM(imsDataToBePrinted, titleImsPl1Data));
+						}else {
+							indentedSubTitle = title(titleImsPl1Data + " - PL1");							
+							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
+							indentedSubTitle.setFont(fontForSubTitle);
+							indentedSubTitle.setIndentationLeft(100f);
+							document.add(indentedSubTitle);
+							document.add(pgmTablesSCLM(imsDataToBePrinted, titleImsPl1Data));
 						}
+							//document.add(title(data));
+
 						}
+					}
 					
 					if (focusDataToBeAdded.isEmpty()) {
 //						document.add(content("NA"));
@@ -787,7 +769,7 @@ public class PDFGeneratorService {
 
 					}
 					
-					
+					}
 					Paragraph indentendDB2DBName = title("DB2 Databases");
 					indentendDB2DBName.setIndentationLeft(50f);
 					
@@ -931,7 +913,7 @@ public class PDFGeneratorService {
 
 				Document document = new Document(PageSize.A4);
 				try {
-					PdfWriter writer = PdfWriter.getInstance(document ,new FileOutputStream(PATH + mapKey + ".pdf"));//change path where to write
+					PdfWriter writer = PdfWriter.getInstance(document ,new FileOutputStream("C:\\Users\\1000070564\\Documents\\FSD-Documents\\" + mapKey + ".pdf"));//change path where to write
 //					PdfWriter.getInstance(document, new FileOutputStream(mapKey));
 					writer.setPageEvent(new PageNumberAndMarginHandler());
 					document.open();
