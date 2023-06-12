@@ -166,7 +166,7 @@ public class PDFGeneratorService {
 			}
 			
 			
-			if(new File(PATH + "PL1_Det" + ".txt").exists()) {				
+			if(new File(PATH + "PL1_Det (2)" + ".txt").exists()) {				
 				pl1Reader = new BufferedReader(new FileReader(PATH + "PL1_Det (2).txt"));
 				String pl1Line;
 				while((pl1Line = pl1Reader.readLine())!= null) {
@@ -504,7 +504,7 @@ public class PDFGeneratorService {
 					Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
 					tableHeaderTitle.setSize(14);
 					
-					PdfPCell titleMain =new PdfPCell (new Paragraph("Functional Specification document  Job - " + mapKey +"\n" , fontTitle));
+					PdfPCell titleMain =new PdfPCell (new Paragraph("Technical Specification document  Job - " + mapKey +"\n" , fontTitle));
 //					titleMain.setSpacingAfter(20f);
 //					titleMain.setSpacingBefore();
 					
@@ -872,7 +872,7 @@ public class PDFGeneratorService {
 					
 					if (Pl1Db2QueryMap.containsKey(mapKey)){
 						for(PL1DB2Query i :Pl1Db2QueryMap.get(mapKey)) {
-							keysForDb2Tables.add(i.getProgramName());
+							keysForDb2TablesPl1.add(i.getProgramName());
 						}
 					}
 					
@@ -883,6 +883,8 @@ public class PDFGeneratorService {
 						document.add(indentedDB2Content);
 						for (String data: keysForDb2Tables) {					
 //							document.add(title(data));
+							
+							
 							
 							Paragraph indentedSubTitle = title(data + " - FOCUS");
 //							document.add(title(data));
@@ -895,13 +897,15 @@ public class PDFGeneratorService {
 							
 							
 						}
-						if (Pl1Db2QueryMap.containsKey(mapKey)) {
-							Paragraph indentedSubTitle = title("DB2 Query - PL1");
-							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
-							indentedSubTitle.setFont(fontForSubTitle);
-							indentedSubTitle.setIndentationLeft(100f);
-							document.add(indentedSubTitle);	
-							document.add(pl1DB2QueryTables(Pl1Db2QueryMap.get(mapKey), mapKey));
+						for (String keyPl1Map: keysForDb2TablesPl1) {
+							if (Pl1Db2QueryMap.containsKey(mapKey)) {
+								Paragraph indentedSubTitle = title(keyPl1Map +  " - PL1");
+								Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
+								indentedSubTitle.setFont(fontForSubTitle);
+								indentedSubTitle.setIndentationLeft(100f);
+								document.add(indentedSubTitle);	
+								document.add(pl1DB2QueryTables(Pl1Db2QueryMap.get(mapKey), keyPl1Map));
+							}
 						}
 					}
 					
@@ -1056,7 +1060,7 @@ public class PDFGeneratorService {
 					Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
 					tableHeaderTitle.setSize(14);
 					
-					PdfPCell titleMain =new PdfPCell (new Paragraph("Functional Specification document  Job - " + mapKey +"\n" , fontTitle));
+					PdfPCell titleMain =new PdfPCell (new Paragraph("Technical Specification document  Job - " + mapKey +"\n" , fontTitle));
 
 					
 					titleMain.setPadding(10f);
@@ -1281,8 +1285,17 @@ public class PDFGeneratorService {
 					Paragraph indentendPl1DB2Name = title("Db2 Databases");
 					document.add(indentendPl1DB2Name);
 					
-					if (Pl1Db2QueryMap.containsKey(mapKey)) {
-						document.add(pl1DB2QueryTables(Pl1Db2QueryMap.get(mapKey), "hello"));
+					if (!(keysForDb2TablesPl1.isEmpty())) {
+						for (String titleKeys: keysForDb2TablesPl1) {
+							if (Pl1Db2QueryMap.containsKey(mapKey)) {
+								Paragraph indentedSubTitle = title(titleKeys + " - PL1");
+								Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
+								indentedSubTitle.setFont(fontForSubTitle);
+								indentedSubTitle.setIndentationLeft(100f);
+								document.add(indentedSubTitle);
+								document.add(pl1DB2QueryTables(Pl1Db2QueryMap.get(mapKey), titleKeys));
+							}
+						}
 					}
 					
 					}else {
@@ -1656,23 +1669,28 @@ public class PDFGeneratorService {
 //		ArrayList<PdfPTable> tables = new ArrayList<>();
 		
 		
-		PdfPTable newTable = new PdfPTable(3);
+		PdfPTable newTable = new PdfPTable(4);
 		
 		Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
 		tableHeaderTitle.setSize(14);
 		
+		
+		Font querySize = FontFactory.getFont(FontFactory.TIMES);
+		querySize.setSize(8);
+		
 //		newTable.addCell(new Paragraph("PSB PDS MEMBER", tableHeaderTitle));// creates header
 		newTable.addCell(new Paragraph("Job Name", tableHeaderTitle));// creates header
 		newTable.addCell(new Paragraph("Program Name", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Database Name", tableHeaderTitle));
 		newTable.addCell(new Paragraph("Query", tableHeaderTitle));// creates header
 		
 		for (PL1DB2Query data:  pl1QueryData) {
-			
-			newTable.addCell(data.getJobName());
-			newTable.addCell(data.getProgramName());
-			newTable.addCell(data.getDb2Query());
-
-		
+			if (key.trim().equals(data.getProgramName())) {
+				newTable.addCell(data.getJobName());
+				newTable.addCell(data.getProgramName());
+				newTable.addCell("");
+				newTable.addCell(new Paragraph(data.getDb2Query(), querySize));
+			}
 		}
 		
 		newTable.setSpacingAfter(20);
