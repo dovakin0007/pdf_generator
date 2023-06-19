@@ -47,9 +47,8 @@ import net.sourceforge.plantuml.SourceStringReader;
 public class PDFGeneratorService {
 	
 	private static final int TITLE_FONT_SIZE = 24;
-	private static final int TITLE_SECTION_SIZE = 22;
 	private static final int TITLE_SUB_SECTION_SIZE = 18;
-	private static final String PATH = "C:\\Users\\1000070564\\Downloads\\";
+	private static final String PATH = "C:\\Users\\1000070564\\Downloads\\Shark_Tank_Input\\";
 	
 	public void export(HttpServletResponse response) throws Exception{
 
@@ -65,6 +64,8 @@ public class PDFGeneratorService {
 		BufferedReader pl1IoDetsReader;
 		
 		BufferedReader pl1Db2QueryReader;
+		
+		BufferedReader focusComplexityReader;
 	
 		HashMap<String, ArrayList<JobDetails>> map= new HashMap<>();
 		
@@ -80,17 +81,53 @@ public class PDFGeneratorService {
 		
 		HashMap<String, ArrayList<PL1DB2Query>> Pl1Db2QueryMap = new HashMap<>();
 		
+		HashMap<String, ArrayList<FocusComplexity>> focusComplexityMap = new HashMap<>();
 		try {
-			reader = new BufferedReader(new FileReader(PATH+"Job_Details1 (1).txt")); //change path where to read
+			reader = new BufferedReader(new FileReader(PATH+"Job_Details.txt")); //change path where to read
 			
-			imsSectionReader = new BufferedReader (new FileReader(PATH+"IMS_Section (3).txt")); // change path where to read for IMS Db2
+			imsSectionReader = new BufferedReader (new FileReader(PATH+"IMS_Section.txt")); // change path where to read for IMS Db2
 			
-			focusDataReader = new BufferedReader(new FileReader(PATH+"FOC_Det (3).txt"));
+			focusDataReader = new BufferedReader(new FileReader(PATH+"FOC_Det.txt"));
 			
-			focusSubModuleReader = new BufferedReader(new FileReader(PATH+"FOC_SubM1 (1).txt"));
+			focusSubModuleReader = new BufferedReader(new FileReader(PATH+"FOC_SubM.txt"));
 			
-			if (new File(PATH + "PL1DB2.txt").exists()) {
-				pl1Db2QueryReader = new BufferedReader(new FileReader(PATH + "PL1DB2.txt"));
+			if (new File(PATH + "FOC_Complexity.txt").exists()) {
+				focusComplexityReader = new BufferedReader(new FileReader(PATH + "FOC_Complexity.txt"));
+				String complexityFocLine;
+				focusComplexityReader.readLine();
+				while((complexityFocLine = focusComplexityReader.readLine())!= null) {
+					if (complexityFocLine.contains(String.valueOf('|'))) {
+					String[] fields = complexityFocLine.split("\\|");
+					
+					FocusComplexity focComplexityDets = new FocusComplexity();
+					focComplexityDets.setJob(fields[0].trim());
+					focComplexityDets.setProgram(fields[1].trim());
+					focComplexityDets.setTableFiles(fields[2].trim());
+					focComplexityDets.setMatchFiles(fields[3].trim());
+					focComplexityDets.setJoins(fields[4].trim());
+					focComplexityDets.setModifyFile(fields[5].trim());
+					focComplexityDets.setRead(fields[6].trim());
+					focComplexityDets.setWrite(fields[7].trim());
+					focComplexityDets.setAlloc(fields[8].trim());
+					focComplexityDets.setInclude(fields[9].trim());
+					focComplexityDets.setEx(fields[10].trim());
+					focComplexityDets.setTotalLines(fields[11].trim());
+					
+					if(focusComplexityMap.containsKey(fields[0].trim())){
+						ArrayList<FocusComplexity> focComplexityArr = focusComplexityMap.get(fields[0].trim());
+						focComplexityArr.add(focComplexityDets);
+						focusComplexityMap.put(fields[0].trim(), focComplexityArr);
+					}else {
+						ArrayList<FocusComplexity> focComplexityArr = new ArrayList<>();
+						focComplexityArr.add(focComplexityDets);
+						focusComplexityMap.put(fields[0].trim(), focComplexityArr);
+					}
+					}
+				}
+			}
+			
+			if (new File(PATH + "PL1_DB2.txt").exists()) {
+				pl1Db2QueryReader = new BufferedReader(new FileReader(PATH + "PL1_DB2.txt"));
 				String pl1Db2Line;
 				while((pl1Db2Line = pl1Db2QueryReader.readLine())!= null) {
 					if (pl1Db2Line.contains(String.valueOf('|'))) {
@@ -136,8 +173,8 @@ public class PDFGeneratorService {
 			}
 			
 			
-			if (new File(PATH + "PL1FILE" + ".txt").exists()) {
-				pl1IoDetsReader = new BufferedReader(new FileReader(PATH + "PL1FILE" + ".txt"));
+			if (new File(PATH + "PL1_FILE" + ".txt").exists()) {
+				pl1IoDetsReader = new BufferedReader(new FileReader(PATH + "PL1_FILE" + ".txt"));
 				String pl1IoLine;
 				while((pl1IoLine = pl1IoDetsReader.readLine())!= null) {
 					if (pl1IoLine.contains(String.valueOf('|'))) {
@@ -166,8 +203,8 @@ public class PDFGeneratorService {
 			}
 			
 			
-			if(new File(PATH + "PL1_Det (2)" + ".txt").exists()) {				
-				pl1Reader = new BufferedReader(new FileReader(PATH + "PL1_Det (2).txt"));
+			if(new File(PATH + "PL1_Det" + ".txt").exists()) {				
+				pl1Reader = new BufferedReader(new FileReader(PATH + "PL1_Det.txt"));
 				String pl1Line;
 				while((pl1Line = pl1Reader.readLine())!= null) {
 					if (pl1Line.contains(String.valueOf('|'))) {
@@ -504,7 +541,7 @@ public class PDFGeneratorService {
 					Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
 					tableHeaderTitle.setSize(14);
 					
-					PdfPCell titleMain =new PdfPCell (new Paragraph("Technical Specification document  Job - " + mapKey +"\n" , fontTitle));
+					PdfPCell titleMain =new PdfPCell (new Paragraph("Technical Specification document \n Job - " + mapKey +"\n" , fontTitle));
 //					titleMain.setSpacingAfter(20f);
 //					titleMain.setSpacingBefore();
 					
@@ -627,7 +664,6 @@ public class PDFGeneratorService {
 						}
 					}
 					
-//					document.add(new Paragraph("hi"));
 					document.add(new Paragraph(" "));
 					document.add(tableHeadingBox);
 					document.add(titlesection("Job Details: "));
@@ -1006,6 +1042,19 @@ public class PDFGeneratorService {
 					
 						}
 					}
+					
+					
+					Paragraph indentedFocusComplexity = titlesection("Focus Complexity");
+					document.add(indentedFocusComplexity);
+					Paragraph focusComplexityContent = content("Below are Function Points to determine the complexity of Focus program");
+					document.add(focusComplexityContent);
+					if (focusComplexityMap.containsKey(mapKey)) {
+						ArrayList<FocusComplexity> focusComplexityList = focusComplexityMap.get(mapKey);
+						document.add(focusComplexityTable(focusComplexityList));
+					}else {
+						document.add(new Paragraph("NA"));
+					}
+					
 //					for(int i = 0;i< document.getPageNumber(); i++) {
 ////						PdfPage page
 //					}
@@ -1060,7 +1109,7 @@ public class PDFGeneratorService {
 					Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
 					tableHeaderTitle.setSize(14);
 					
-					PdfPCell titleMain =new PdfPCell (new Paragraph("Technical Specification document  Job - " + mapKey +"\n" , fontTitle));
+					PdfPCell titleMain =new PdfPCell (new Paragraph("Technical Specification document \n  Job - " + mapKey +"\n" , fontTitle));
 
 					
 					titleMain.setPadding(10f);
@@ -1381,6 +1430,17 @@ public class PDFGeneratorService {
 						}
 					}
 					
+					Paragraph indentedFocusComplexity = titlesection("Focus Complexity");
+					document.add(indentedFocusComplexity);
+					if (focusComplexityMap.containsKey(mapKey)) {
+						ArrayList<FocusComplexity> focusComplexityList = focusComplexityMap.get(mapKey);
+						document.add(focusComplexityTable(focusComplexityList));
+						
+						
+					}else {
+						document.add(new Paragraph("NA"));
+					}
+					
 					
 					document.close();
 					
@@ -1698,6 +1758,55 @@ public class PDFGeneratorService {
 		return newTable;
 		
 	}
+	
+
+	public PdfPTable focusComplexityTable(ArrayList<FocusComplexity> focusComplexityArr){
+//		ArrayList<PdfPTable> tables = new ArrayList<>();
+		
+		
+		PdfPTable newTable = new PdfPTable(11);
+		
+		Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
+		tableHeaderTitle.setSize(8);
+		
+		
+		
+		Font querySize = FontFactory.getFont(FontFactory.TIMES);
+		querySize.setSize(8);
+		
+//		newTable.addCell(new Paragraph("PSB PDS MEMBER", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Program Name", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Table Files", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Match Files", tableHeaderTitle));
+		newTable.addCell(new Paragraph("Joins", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Modify file",  tableHeaderTitle));
+		newTable.addCell(new Paragraph("Read",  tableHeaderTitle));
+		newTable.addCell(new Paragraph("Write",  tableHeaderTitle));
+		newTable.addCell(new Paragraph("Alloc",  tableHeaderTitle));
+		newTable.addCell(new Paragraph("Include",  tableHeaderTitle));
+		newTable.addCell(new Paragraph("Ex",  tableHeaderTitle));
+		newTable.addCell(new Paragraph("Total Lines",  tableHeaderTitle));
+		for (FocusComplexity data: focusComplexityArr) {
+			newTable.addCell(new Paragraph(data.getProgram(), querySize));
+			newTable.addCell(new Paragraph(data.getTableFiles(), querySize));
+			newTable.addCell(new Paragraph(data.getMatchFiles(), querySize));
+			newTable.addCell(new Paragraph(data.getJoins(), querySize));
+			newTable.addCell(new Paragraph(data.getModifyFile(), querySize));
+			newTable.addCell(new Paragraph(data.getRead(), querySize));
+			newTable.addCell(new Paragraph(data.getWrite(), querySize));
+			newTable.addCell(new Paragraph(data.getAlloc(), querySize));
+			newTable.addCell(new Paragraph(data.getInclude(), querySize));
+			newTable.addCell(new Paragraph(data.getEx(), querySize));
+			newTable.addCell(new Paragraph(data.getTotalLines(), querySize));
+
+		}
+		
+		newTable.setSpacingAfter(20);
+		newTable.setSpacingBefore(20);
+		return newTable;
+		
+	}
+	
 
 	
 	private static class PageNumberAndMarginHandler extends PdfPageEventHelper{
