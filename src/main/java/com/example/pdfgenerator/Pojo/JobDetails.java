@@ -37,11 +37,20 @@ public class JobDetails {
 	public void setStepDescription(String stepDescription) {
 		this.stepDescription = stepDescription;
 	}
+
+	public String getParameters() {
+		return parameters;
+	}
+	public void setParameters(String parameters) {
+		this.parameters = parameters;
+	}
+
 	private String jobName ; 
 	private String jobStep ; 
 	private String procName ;
 	private String procStep ; 
 	private String programName ; 
 	private String stepDescription;
+	private String parameters;
 
 }

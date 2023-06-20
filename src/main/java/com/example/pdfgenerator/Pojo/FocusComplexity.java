@@ -74,6 +74,14 @@ public class FocusComplexity {
 	public void setTotalLines(String totalLines) {
 		TotalLines = totalLines;
 	}
+	
+	public String getComplexity() {
+		return Complexity;
+	}
+	public void setComplexity(String complexity) {
+		Complexity = complexity;
+	}
+
 	private String Job;
 	private String Program; 
 	private String TableFiles; 
@@ -86,4 +94,5 @@ public class FocusComplexity {
 	private String Include; 
 	private String Ex;
 	private String TotalLines;
+	private String Complexity;
 }

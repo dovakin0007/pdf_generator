@@ -9,9 +9,7 @@ import java.io.FileReader;
 import java.util.TreeSet;
 import java.util.SortedSet;
 import java.util.ArrayList;
-//import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.Map;
 import java.util.HashMap;
@@ -29,6 +27,7 @@ import com.lowagie.text.FontFactory;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.Paragraph;
+
 
 import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.pdf.PdfPageEventHelper;
@@ -112,6 +111,7 @@ public class PDFGeneratorService {
 					focComplexityDets.setInclude(fields[9].trim());
 					focComplexityDets.setEx(fields[10].trim());
 					focComplexityDets.setTotalLines(fields[11].trim());
+					focComplexityDets.setComplexity(fields[12].trim());
 					
 					if(focusComplexityMap.containsKey(fields[0].trim())){
 						ArrayList<FocusComplexity> focComplexityArr = focusComplexityMap.get(fields[0].trim());
@@ -246,8 +246,7 @@ public class PDFGeneratorService {
 
 					String[] imsFields = imsLine.split("\\|"); //creating array using split func
 					ImsSection imsSectionObj = new ImsSection();
-					
-//					System.out.println(Arrays.toString(imsFields));
+
 					imsSectionObj.setJobName(imsFields[0].trim());
 					imsSectionObj.setPSBMember(imsFields[1].trim());
 					imsSectionObj.setPGMName(imsFields[2].trim());// key of the Hashmap
@@ -275,14 +274,16 @@ public class PDFGeneratorService {
 			
 			while((line = reader.readLine()) != null) {
 				if (line.contains(String.valueOf('|'))) {
-				String[] fields = line.split("\\|");
+				String[] fields = line.split("\\|", -1);
 				JobDetails jobDetails = new JobDetails();
+
 				jobDetails.setJobName(fields[0].trim());
 				jobDetails.setJobStep(fields[1].trim());
 				jobDetails.setProcName(fields[2].trim());
 				jobDetails.setProcStep(fields[3].trim());
 				jobDetails.setProgramName(fields[4].trim());
 				jobDetails.setStepDescription(fields[5].trim());
+				jobDetails.setParameters(fields[6].trim());
 				
 				if (map.containsKey(fields[0].trim())) {
 					ArrayList<JobDetails> newValue = map.get(fields[0].trim());
@@ -371,12 +372,7 @@ public class PDFGeneratorService {
 			
 			
 			for(String mapKey:map.keySet()) {
-				int idx = 0;
-				if (Pl1Db2QueryMap.containsKey(mapKey)) {
-					System.out.println(Pl1Db2QueryMap.get(mapKey));
-					System.out.println((Pl1Db2QueryMap.get(mapKey)).get(idx).getDb2Query());
-					idx++;
-				}
+
 				ArrayList<String> appendedStrings = new ArrayList<>();
 				for(JobDetails i: map.get(mapKey)) {
 					if (i.getStepDescription() == "") {
@@ -412,7 +408,7 @@ public class PDFGeneratorService {
 								
 							}else if(d.isHasSubModule1()== false) {
 								String mainModule = d.getProgramName();
-								keyAndValuesForFocusSubMap.put(mainModule, "NA");
+								keyAndValuesForFocusSubMap.put(mainModule, "N/A");
 							}
 							
 							if(d.isHasSubModule2()==true) {
@@ -420,7 +416,7 @@ public class PDFGeneratorService {
 								keyAndValuesForFocusSubMap.put(mainModule, d.getSubModule2());
 							}else if(d.isHasSubModule2()== false && d.isHasSubModule1() == true) {
 								String mainModule = d.getSubModule1();
-								keyAndValuesForFocusSubMap.put(mainModule, "NA");
+								keyAndValuesForFocusSubMap.put(mainModule, "N/A");
 							}
 							
 							if(d.isHasSubModule3()==true) {
@@ -428,7 +424,7 @@ public class PDFGeneratorService {
 								keyAndValuesForFocusSubMap.put(mainModule, d.getSubModule3());
 							}else if(d.isHasSubModule3()== false && d.isHasSubModule2() == true) {
 								String mainModule = d.getSubModule2();
-								keyAndValuesForFocusSubMap.put(mainModule, "NA");
+								keyAndValuesForFocusSubMap.put(mainModule, "N/A");
 							}
 							
 							if(d.isHasSubModule4()==true) {
@@ -436,7 +432,7 @@ public class PDFGeneratorService {
 								keyAndValuesForFocusSubMap.put(mainModule, d.getSubModule4());
 							}else if(d.isHasSubModule4()== false && d.isHasSubModule3() == true) {
 								String mainModule = d.getSubModule3();
-								keyAndValuesForFocusSubMap.put(mainModule, "NA");
+								keyAndValuesForFocusSubMap.put(mainModule, "N/A");
 							}
 							
 							if(d.isHasSubModule5()==true) {
@@ -444,7 +440,7 @@ public class PDFGeneratorService {
 								keyAndValuesForFocusSubMap.put(mainModule, d.getSubModule5());
 							}else if(d.isHasSubModule5()== false && d.isHasSubModule4() == true) {
 								String mainModule = d.getSubModule4();
-								keyAndValuesForFocusSubMap.put(mainModule, "NA");
+								keyAndValuesForFocusSubMap.put(mainModule, "N/A");
 							}
 							
 							keyValueFocusSubMapList.add(keyAndValuesForFocusSubMap);
@@ -501,8 +497,21 @@ public class PDFGeneratorService {
 						 }
 					 }
 				}
-
-			
+				
+				for (String keyForProgramStep: programStepDetails.keySet()) {
+					ArrayList<String> programStepArray = new ArrayList<>();
+					int idx = 0;
+					for (String currentString:  programStepDetails.get(keyForProgramStep)) {
+						idx++;
+						String newString = idx+") "+currentString.substring(4);
+						
+						programStepArray.add(newString);
+						
+					}
+					programStepDetails.put( keyForProgramStep,  programStepArray);
+				}
+				
+				
 				StringBuilder uml = new StringBuilder();
 				File fOS= new File(PATH + mapKey + ".png");
 				FontFactory.register("C:\\Windows\\Fonts\\Calibri");
@@ -555,89 +564,59 @@ public class PDFGeneratorService {
 					tableHeadingBox.addCell(titleMain);
 					
 					//creating table
-					PdfPTable table1 = new PdfPTable(5);
+					PdfPTable table1 = new PdfPTable(4);
 					
 					table1.addCell(new Paragraph("Step Name", tableHeaderTitle));// creates header
-					table1.addCell(new Paragraph("Proc Name", tableHeaderTitle));// creates header
-					table1.addCell(new Paragraph("Proc Step", tableHeaderTitle));// creates header
-					table1.addCell(new Paragraph("Program", tableHeaderTitle));// creates header
 					table1.addCell(new Paragraph("Step Description", tableHeaderTitle));// creates header
+					table1.addCell(new Paragraph("Program", tableHeaderTitle));
+					table1.addCell(new Paragraph("Parameters",  tableHeaderTitle));
 					for(JobDetails data: map.get(mapKey)) {//looping to the array list
 						if(data.getJobStep().trim() == "") {
 						
 						}
 						else {
 						if(data.getJobStep().trim() == "") {
-							table1.addCell("NA");
-						}else {
+							table1.addCell("N/A");
+						}else if (!(data.getProcStep().equals(""))) {
+							table1.addCell(data.getJobStep() + "." + data.getProcStep());
+						}
+						else {
 							table1.addCell(data.getJobStep());
 						}
 						
-						if (data.getProcName().trim() == "") {
-							table1.addCell("NA");
+						if(data.getStepDescription().trim() == "") {
+							table1.addCell("N/A");
 						}else {
-							table1.addCell(data.getProcName());
-						}
-						
-						if(data.getProcStep().trim() == "") {
-							table1.addCell("NA");
-						}
-						else {
-							table1.addCell(data.getProcStep());
-						}
+							table1.addCell(data.getStepDescription());
+							}
 						
 						if(data.getProgramName().trim() == "") {
-							table1.addCell("NA");
+							table1.addCell("N/A");
 						}
 						else {
 							table1.addCell(data.getProgramName());
 						}
-						if(data.getStepDescription().trim() == "") {
-							table1.addCell("NA");
+		
+						}
+						if(data.getParameters().trim().equals("")) {
+							table1.addCell("None");
 						}else {
-							table1.addCell(data.getStepDescription());
-							}
+							table1.addCell(data.getParameters().trim());
 						}
 						
 					}
+
 //					keyValueFocusSubMapList;
 					PdfPTable programTable = new PdfPTable(4);
 					programTable.addCell(new Paragraph("Program Name", tableHeaderTitle));
 					programTable.addCell(new Paragraph("Program Type", tableHeaderTitle));
+					programTable.addCell(new Paragraph("Process Flow", tableHeaderTitle));
 					programTable.addCell(new Paragraph("Called Modules", tableHeaderTitle));
-					programTable.addCell(new Paragraph("Program Description", tableHeaderTitle));
-					
-//					for (JobDetails prgData: map.get(mapKey)) {
-//						if (prgData.getProgramName().trim() == "") {
-//							
-//						}
-//						else {
-//							if (prgData.getProgramName().trim() == "") {
-//								programTable.addCell("NA");
-//							} else {
-//								programTable.addCell(prgData.getProgramName());
-//							}
-//							if (prgData.getProgramName().trim() == "") {
-//								programTable.addCell("NA");
-//							}else {
-//								programTable.addCell(prgData.getProgramName());
-//							}
-//							programTable.addCell("NA");
-//							programTable.addCell("NA");
-//						}
-//					}
+
 					Map<String, ArrayList<String>> sortedFocusProgramDataMap = new TreeMap<>(programStepDetails);
 					for (String i: sortedFocusProgramDataMap.keySet()) {
 						programTable.addCell(i);
 						programTable.addCell("FOCUS");
-//						programTable.addCell(moduleTypesKeyValues.get(i).toString());
-//						programTable.addCell(sortedFocusProgramDataMap.get(i).toString());
-						StringBuilder calledModules = new StringBuilder();
-						for(String calledModule : moduleTypesKeyValues.get(i)) {
-							calledModules.append(calledModule + "\n");
-						}
-						programTable.addCell(calledModules.toString());
-						
 						
 						StringBuilder programDescriptions = new StringBuilder();
 						
@@ -645,6 +624,15 @@ public class PDFGeneratorService {
 							programDescriptions.append(programDescription + "\n");
 						}
 						programTable.addCell(programDescriptions.toString());
+						
+						StringBuilder calledModules = new StringBuilder();
+						for(String calledModule : moduleTypesKeyValues.get(i)) {
+							calledModules.append(calledModule + "\n");
+						}
+						programTable.addCell(calledModules.toString());
+						
+						
+						
 						
 					}
 					
@@ -654,19 +642,20 @@ public class PDFGeneratorService {
 						
 							programTable.addCell(pl1Dets.getProgramName());
 							programTable.addCell(pl1Dets.getProgramType());
+							programTable.addCell("N/A");
 							if (pl1Dets.getSubModules().equals("")) {
-								programTable.addCell("NA");
+								programTable.addCell("N/A");
 							}else {
 								programTable.addCell(pl1Dets.getSubModules());
 							}
 							
-							programTable.addCell("NA");
+							
 						}
 					}
 					
 					document.add(new Paragraph(" "));
 					document.add(tableHeadingBox);
-					document.add(titlesection("Job Details: "));
+					document.add(titlesection("1.0 Job Details: "));
 					document.add(content("Below are the high level job details"));
 					document.add(table1);
 					
@@ -677,26 +666,23 @@ public class PDFGeneratorService {
 					flowChartContentEdited.setSpacingBefore(25f);
 					
 					if(new File(PATH + mapKey + ".png").exists()) {
-//						document.add(title("FSD Flow chart:"));
+
 						Image pngFile = Image.getInstance(PATH + mapKey + ".png");
 						pngFile.scalePercent(60f);
 						pngFile.setAlignment(Image.ALIGN_CENTER);
-//						pngFile.setSpacingAfter(50f);
-//						pngFile.setSpacingBefore(50f);
+
 						document.add(flowChartContentEdited);
 						document.add(pngFile);
-//						document.add(title("Program Details"));
-//						document.add(content("Below programs are part of this job which performs given actions."));
-//						document.add(programTable);
+
 					}
 					else {
 						document.add(flowChartContentEdited);
-						document.add(content("NN"));
+						document.add(content("N/A"));
 
 					}
 					
 					
-					Paragraph prgDetailsTitle = titlesection("Program Details");
+					Paragraph prgDetailsTitle = titlesection("2.0 Program Details");
 					prgDetailsTitle.setSpacingBefore(100f);
 					document.add(prgDetailsTitle);
 					document.add(content("Below programs are part of this job which performs given actions."));
@@ -705,8 +691,8 @@ public class PDFGeneratorService {
 					}else {
 						document.add(programTable);	
 					}
-					document.add(titlesection("Databases"));
-					Paragraph indentendIMSDBName = title("IMS Databases");
+					document.add(titlesection("3.0 Databases"));
+					Paragraph indentendIMSDBName = title("3.1 IMS Databases");
 					Paragraph imsDBContent = content("Below IMS databases are in use by respective programs. "
 							+ "These programs can perform below actions on Database / Segment within the database. ");
 					imsDBContent.setIndentationLeft(50f);
@@ -714,8 +700,6 @@ public class PDFGeneratorService {
 					
 					document.add(indentendIMSDBName);
 					document.add(imsDBContent);
-					
-					
 					
 					HashSet<String> prgNamesForPl1 = new HashSet<>();
 					for (String pl1IMSProgramName: imsMap.keySet()) {
@@ -823,28 +807,33 @@ public class PDFGeneratorService {
 	
 					
 					if (prgNamesForPl1.isEmpty() &&focusDataToBeAdded.isEmpty()) {
-						document.add(content("NA"));
+						document.add(content("N/A"));
 					}else {
+					int documentIndex = 1;
 					for(String titleImsPl1Data: prgNamesForPl1) {
 						ArrayList <ImsSection> imsDataToBePrinted =  new ArrayList<>();
+						
 						for(ImsSection imsPl1: sortedIMSData) {
-//								System.out.println(imsPl1.getPGMName());
+
 							if (titleImsPl1Data.equals(imsPl1.getPGMName().trim())) {
 								 imsDataToBePrinted.add(imsPl1);
-//									 System.out.println("Ok");
+
 							}	
 						}
 						if (!(imsDataToBePrinted.isEmpty())) {
 							Paragraph indentedSubTitle ;
+							
 						if (prgNamesAndPrgType.containsKey(titleImsPl1Data)) {
-							indentedSubTitle = title(titleImsPl1Data + " - " + prgNamesAndPrgType.get(titleImsPl1Data));
+							indentedSubTitle = title("3.1." + documentIndex + " " + titleImsPl1Data + " - " + prgNamesAndPrgType.get(titleImsPl1Data));
+							documentIndex++;
 							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
 							indentedSubTitle.setFont(fontForSubTitle);
 							indentedSubTitle.setIndentationLeft(100f);
 							document.add(indentedSubTitle);
 							document.add(pgmTablesSCLM(imsDataToBePrinted, titleImsPl1Data));
 						}else {
-							indentedSubTitle = title(titleImsPl1Data + " - PL1");							
+							indentedSubTitle = title("3.1."+ documentIndex + " " +titleImsPl1Data + " - PL1");
+							documentIndex++;
 							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
 							indentedSubTitle.setFont(fontForSubTitle);
 							indentedSubTitle.setIndentationLeft(100f);
@@ -857,14 +846,14 @@ public class PDFGeneratorService {
 					}
 					
 					if (focusDataToBeAdded.isEmpty()) {
-//						document.add(content("NA"));
+//						document.add(content("N/A"));
 					}
 				
 					else {
-										
+	
 						for (String data: keysForIMSMapFocus) {
-
-							Paragraph indentedSubTitle = title(data + " - FOCUS");
+							
+							Paragraph indentedSubTitle = title("3.1." + documentIndex + " " + data + " - FOCUS");
 //							document.add(title(data));
 							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
 							indentedSubTitle.setFont(fontForSubTitle);
@@ -893,10 +882,10 @@ public class PDFGeneratorService {
 					}
 					
 					}
-					Paragraph indentendDB2DBName = title("DB2 Databases");
+					Paragraph indentendDB2DBName = title("3.2 DB2 Databases");
 					indentendDB2DBName.setIndentationLeft(50f);
 					
-					Paragraph indentedDB2Content = content("Queries executed in programs are provided herewith.");
+					Paragraph indentedDB2Content = content("Below programs are using DB2 tables to extract or update the data.");
 					indentedDB2Content.setIndentationLeft(50f);
 					
 					
@@ -913,36 +902,35 @@ public class PDFGeneratorService {
 					}
 					
 					if(keysForDb2Tables.isEmpty() && keysForDb2TablesPl1.isEmpty()) {
-						document.add(content("NA"));
+						document.add(content("N/A"));
 					}
 					else {
 						document.add(indentedDB2Content);
-						for (String data: keysForDb2Tables) {					
+					
 //							document.add(title(data));
 							
 							
-							
-							Paragraph indentedSubTitle = title(data + " - FOCUS");
+							Paragraph indentedSubTitle = title("3.2.1 FOCUS - DB2 Programs");
 //							document.add(title(data));
 							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
 							indentedSubTitle.setFont(fontForSubTitle);
 							indentedSubTitle.setIndentationLeft(100f);
 							document.add(indentedSubTitle);	
 //						ArrayList<FocusData> pgmTablesEntry = focusDataToBeAddedDb2;
-							document.add(db2Tables(focusDataToBeAddedDb2, data));
+							document.add(db2Tables(focusDataToBeAddedDb2, "NA"));
 							
 							
-						}
-						for (String keyPl1Map: keysForDb2TablesPl1) {
+						
+						
 							if (Pl1Db2QueryMap.containsKey(mapKey)) {
-								Paragraph indentedSubTitle = title(keyPl1Map +  " - PL1");
-								Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
-								indentedSubTitle.setFont(fontForSubTitle);
-								indentedSubTitle.setIndentationLeft(100f);
-								document.add(indentedSubTitle);	
-								document.add(pl1DB2QueryTables(Pl1Db2QueryMap.get(mapKey), keyPl1Map));
+								Paragraph newIndentedSubTitle = title("3.2.2 PL1 - DB2 Programs");
+								Font newFontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
+								newIndentedSubTitle.setFont(newFontForSubTitle);
+								newIndentedSubTitle.setIndentationLeft(100f);
+								document.add(newIndentedSubTitle);	
+								document.add(pl1DB2QueryTables(Pl1Db2QueryMap.get(mapKey), "NA"));
 							}
-						}
+						
 					}
 					
 					
@@ -955,7 +943,7 @@ public class PDFGeneratorService {
 						}
 					}
 					
-					Paragraph indentedCopyBookName = titlesection("CopyBook Details");
+					Paragraph indentedCopyBookName = titlesection("4.0 CopyBook Details");
 					//indentedCopyBookName.setIndentationLeft(50f);
 					
 					Paragraph indentedCopyBookDetails = content("This section provides the details of copybooks.");
@@ -964,7 +952,7 @@ public class PDFGeneratorService {
 					document.add(indentedCopyBookName);
 
 					if (newKeysForCopyBookDetails.isEmpty()) {
-						document.add(content("NA"));
+						document.add(content("N/A"));
 					}else {
 						document.add(indentedCopyBookDetails);
 						
@@ -995,7 +983,7 @@ public class PDFGeneratorService {
 //						
 //					}
 					
-					Paragraph indentedInputOutput = titlesection("Input/Output Files");
+					Paragraph indentedInputOutput = titlesection("5.0 Input/Output Files");
 					//indentedInputOutput.setIndentationLeft(50f);
 					
 					
@@ -1013,46 +1001,59 @@ public class PDFGeneratorService {
 					
 					document.add(indentedInputOutput);
 					if (keysForIOTables.isEmpty() && programNamesPl1Io.isEmpty()) {
-						document.add(content("NA"));
+						document.add(content("N/A"));
 					}
 					else {
-						
-					for (String data: keysForIOTables) {	
-//							document.add(title(data));
-						Paragraph indentedSubTitle = title(data + " - FOCUS");
-//							document.add(title(data));
+						Paragraph indentedSubTitle = title("5.1 Input/Output"+ " - FOCUS");
+
 						Font fontForSubTitle = new Font(Font.BOLD, 14);
 						indentedSubTitle.setFont(fontForSubTitle);
 						indentedSubTitle.setIndentationLeft(100f);
 						document.add(indentedSubTitle);
 						if(!(focusDataToBeAddedIO.isEmpty())) {
-							document.add(inputOutputTables(focusDataToBeAddedIO , data));
+							document.add(inputOutputTables(focusDataToBeAddedIO , "NA"));
 						}
-						
-						
-					}	
-					for (String i: programNamesPl1Io) {
-						Paragraph indentedSubTitle = title(i + " - PL1");
+					
+						Paragraph newIndentedSubTitle = title("5.2 Input/Output" + " - PL1");
 //						document.add(title(data));
-						Font fontForSubTitle = new Font(Font.BOLD, 14);
-						indentedSubTitle.setFont(fontForSubTitle);
-						indentedSubTitle.setIndentationLeft(100f);
-						document.add(indentedSubTitle);
-						document.add(inputOutputFocusTables(pl1IODetsMap.get(mapKey), i));
 					
+						newIndentedSubTitle.setFont(fontForSubTitle);
+						newIndentedSubTitle.setIndentationLeft(100f);
+						document.add(newIndentedSubTitle);
+						if (pl1IODetsMap.containsKey(mapKey)) {
+							document.add(inputOutputFocusTables(pl1IODetsMap.get(mapKey), "NA"));
+							}
 						}
-					}
 					
 					
-					Paragraph indentedFocusComplexity = titlesection("Focus Complexity");
+					
+					Paragraph indentedComplexity = titlesection("6.0 Complexity");
+					document.add(indentedComplexity);
+					Paragraph indentedFocusComplexity = title("6.1 Focus Complexity");
+					Font someFont = new Font(BaseFont.createFont(), 14);
+					indentedFocusComplexity.setFont(someFont);
+					indentedFocusComplexity.setIndentationLeft(50);
 					document.add(indentedFocusComplexity);
-					Paragraph focusComplexityContent = content("Below are Function Points to determine the complexity of Focus program");
+					
+					Paragraph focusComplexityContent = content(" below are the complexity details for each of the FOCUS programs");
+					 focusComplexityContent.setIndentationLeft(60);
 					document.add(focusComplexityContent);
 					if (focusComplexityMap.containsKey(mapKey)) {
 						ArrayList<FocusComplexity> focusComplexityList = focusComplexityMap.get(mapKey);
-						document.add(focusComplexityTable(focusComplexityList));
+						PdfPTable focTable = focusComplexityTable(focusComplexityList);
+						document.add(focTable);
+						Paragraph focusComplexityContent2 = content("Complexity has been determined based on below matrix");
+						focusComplexityContent2.setIndentationLeft(60);
+						document.add(focusComplexityContent2);
+						document.add(focusMatrixComp());
+						
+						
+						
+					
 					}else {
-						document.add(new Paragraph("NA"));
+						Paragraph na = new Paragraph("N/A");
+						na.setIndentationLeft(100f);
+						document.add(na);
 					}
 					
 //					for(int i = 0;i< document.getPageNumber(); i++) {
@@ -1122,57 +1123,53 @@ public class PDFGeneratorService {
 					tableHeadingBox.addCell(titleMain);
 					
 					//creating table
-					PdfPTable table1 = new PdfPTable(5);
+
+					PdfPTable table1 = new PdfPTable(4);
 					
 					table1.addCell(new Paragraph("Step Name", tableHeaderTitle));// creates header
-					table1.addCell(new Paragraph("Proc Name", tableHeaderTitle));// creates header
-					table1.addCell(new Paragraph("Proc Step", tableHeaderTitle));// creates header
-					table1.addCell(new Paragraph("Program", tableHeaderTitle));// creates header
 					table1.addCell(new Paragraph("Step Description", tableHeaderTitle));// creates header
+					table1.addCell(new Paragraph("Program", tableHeaderTitle));
+					table1.addCell(new Paragraph("Parameters",  tableHeaderTitle));
 					for(JobDetails data: map.get(mapKey)) {//looping to the array list
 						if(data.getJobStep().trim() == "") {
 						
 						}
 						else {
 						if(data.getJobStep().trim() == "") {
-							table1.addCell("NA");
-						}else {
-							table1.addCell(data.getJobStep());
-						}
-						
-						if (data.getProcName().trim() == "") {
-							table1.addCell("NA");
-						}else {
-							table1.addCell(data.getProcName());
-						}
-						
-						if(data.getProcStep().trim() == "") {
-							table1.addCell("NA");
+							table1.addCell("N/A");
+						}else if (!(data.getProcStep().equals(""))) {
+							table1.addCell(data.getJobStep() + "." + data.getProcStep());
 						}
 						else {
-							table1.addCell(data.getProcStep());
+							table1.addCell(data.getJobStep());
 						}
-						
 						if(data.getProgramName().trim() == "") {
-							table1.addCell("NA");
+							table1.addCell("N/A");
 						}
 						else {
 							table1.addCell(data.getProgramName());
 						}
 						if(data.getStepDescription().trim() == "") {
-							table1.addCell("NA");
+							table1.addCell("N/A");
 						}else {
 							table1.addCell(data.getStepDescription());
 							}
 						}
+						if(data.getParameters().trim().equals("")) {
+							table1.addCell("N/A");
+						}else {
+							table1.addCell(data.getParameters());
+							}
 						
 					}
+					
+					
 //					keyValueFocusSubMapList;
 					PdfPTable programTable = new PdfPTable(4);
 					programTable.addCell(new Paragraph("Program Name", tableHeaderTitle));
 					programTable.addCell(new Paragraph("Program Type", tableHeaderTitle));
+					programTable.addCell(new Paragraph("Process Flow", tableHeaderTitle));
 					programTable.addCell(new Paragraph("Called Modules", tableHeaderTitle));
-					programTable.addCell(new Paragraph("Program Description", tableHeaderTitle));
 		
 
 					if (pl1Map.containsKey(mapKey)) {
@@ -1180,20 +1177,21 @@ public class PDFGeneratorService {
 						
 							programTable.addCell(pl1Dets.getProgramName());
 							programTable.addCell(pl1Dets.getProgramType());
+							
+							programTable.addCell("N/A");
+							
 							if (pl1Dets.getSubModules().equals("")) {
-								programTable.addCell("NA");
+								programTable.addCell("N/A");
 							}else {
 								programTable.addCell(pl1Dets.getSubModules());
 							}
-							
-							programTable.addCell("NA");
 						}
 					}
 					
 
 					document.add(new Paragraph(" "));
 					document.add(tableHeadingBox);
-					document.add(titlesection("Job Details: "));
+					document.add(titlesection("1.0 Job Details: "));
 					document.add(content("Below are the high level job details"));
 					document.add(table1);
 					
@@ -1227,7 +1225,7 @@ public class PDFGeneratorService {
 
 					
 					
-					Paragraph prgDetailsTitle = titlesection("Program Details");
+					Paragraph prgDetailsTitle = titlesection("2.0 Program Details");
 					prgDetailsTitle.setSpacingBefore(100f);
 					document.add(prgDetailsTitle);
 					document.add(content("Below programs are part of this job which performs given actions."));
@@ -1237,8 +1235,8 @@ public class PDFGeneratorService {
 						document.add(programTable);	
 					}
 					
-					document.add(titlesection("Databases"));
-					Paragraph indentendIMSDBName = title("IMS Databases");
+					document.add(titlesection("3.0 Databases"));
+					Paragraph indentendIMSDBName = title("3.1 IMS Databases");
 					HashMap<String, String> prgNamesAndPrgType = new HashMap<>();
 					
 					if (pl1Map.containsKey(mapKey)) {
@@ -1267,10 +1265,7 @@ public class PDFGeneratorService {
 						}
 					}
 					
-//					for(String i: prgNamesForPl1) {
-//						System.out.println(i);
-//					}
-//					
+
 					
 					//creating IMS database for pl1
 					ArrayList <ImsSection> sortedIMSData =   new ArrayList<>();
@@ -1290,22 +1285,25 @@ public class PDFGeneratorService {
 					if(imsMap.containsKey(mapKey)) {
 					if(!(prgNamesForPl1.isEmpty()) || !(keysForDb2TablesPl1.isEmpty())) {
 						document.add(imsDBContent);
+					int index = 1;
 					for(String titleImsPl1Data: prgNamesForPl1) {
 						ArrayList <ImsSection> imsDataToBePrinted =   new ArrayList<>();
 						for(ImsSection imsPl1: sortedIMSData) {
-//							System.out.println(imsPl1.getPGMName());
+
 							if (titleImsPl1Data.equals(imsPl1.getPGMName().trim())) {
 								 imsDataToBePrinted.add(imsPl1);
-//								 System.out.println("Ok");
+
 							}		
 						}
 						if (!(imsDataToBePrinted.isEmpty())) {
 							Paragraph indentedSubTitle ;
 							if (prgNamesAndPrgType.containsKey(titleImsPl1Data)) {
-							 indentedSubTitle = title(titleImsPl1Data + " - " + prgNamesAndPrgType.get(titleImsPl1Data));
-						}else {
-							 indentedSubTitle = title(titleImsPl1Data + " - PL1");
-						}
+							 indentedSubTitle = title("3.1."+ index+ " " +titleImsPl1Data + " - " + prgNamesAndPrgType.get(titleImsPl1Data));
+							 index++;
+							}else {
+							 indentedSubTitle = title("3.1."+ index+ " " + titleImsPl1Data + " - PL1");
+							 index++;
+							}
 							
 							//document.add(title(data));
 							Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
@@ -1331,27 +1329,31 @@ public class PDFGeneratorService {
 							+ "\r\n"
 							+ "P - Path Call"));
 					
-					Paragraph indentendPl1DB2Name = title("Db2 Databases");
+					Paragraph indentendPl1DB2Name = title("3.2 Db2 Databases");
 					document.add(indentendPl1DB2Name);
+					Paragraph indentedDB2Content = content("Below programs are using DB2 tables to extract or update the data.");
+					indentedDB2Content.setIndentationLeft(50f);
+					
 					
 					if (!(keysForDb2TablesPl1.isEmpty())) {
-						for (String titleKeys: keysForDb2TablesPl1) {
+						
 							if (Pl1Db2QueryMap.containsKey(mapKey)) {
-								Paragraph indentedSubTitle = title(titleKeys + " - PL1");
+								Paragraph indentedSubTitle = title("3.2.1 DB2" + " - PL1");
 								Font fontForSubTitle = new Font(Font.TIMES_ROMAN, 14);
 								indentedSubTitle.setFont(fontForSubTitle);
-								indentedSubTitle.setIndentationLeft(100f);
+								indentedSubTitle.setIndentationLeft(50f);
 								document.add(indentedSubTitle);
-								document.add(pl1DB2QueryTables(Pl1Db2QueryMap.get(mapKey), titleKeys));
+								document.add(imsDBContent);
+								document.add(pl1DB2QueryTables(Pl1Db2QueryMap.get(mapKey), "NA"));
 							}
-						}
+						
 					}
 					
 					}else {
-						document.add(content("NA"));
+						document.add(content("N/A"));
 					}
 					}else {
-						document.add(content("NA"));
+						document.add(content("N/A"));
 					}
 
 	
@@ -1364,7 +1366,7 @@ public class PDFGeneratorService {
 						}
 					}
 					
-					Paragraph indentedCopyBookName = titlesection("CopyBook Details");
+					Paragraph indentedCopyBookName = titlesection("4.0 CopyBook Details");
 
 					
 					Paragraph indentedCopyBookDetails = content("This section provides the details of copybooks.");
@@ -1373,7 +1375,7 @@ public class PDFGeneratorService {
 					document.add(indentedCopyBookName);
 					
 					if (newKeysForCopyBookDetails.isEmpty()) {
-						document.add(content("NA"));
+						document.add(content("N/A"));
 					}else {
 						document.add(indentedCopyBookDetails);
 						ArrayList<Pl1Details> dataToBeAddedPl1 = new ArrayList<>();
@@ -1399,7 +1401,7 @@ public class PDFGeneratorService {
 		
 					}
 					
-					Paragraph indentedInputOutput = titlesection("Input/Output Files");
+					Paragraph indentedInputOutput = titlesection("5.0 Input/Output Files");
 					//indentedInputOutput.setIndentationLeft(50f);
 					
 					HashSet <String> programNamesPl1Io = new HashSet<>();
@@ -1415,30 +1417,43 @@ public class PDFGeneratorService {
 					document.add(indentedInputOutput);
 
 					if (programNamesPl1Io.isEmpty()) {
-						document.add(content("NA"));
+						document.add(content("N/A"));
 					}else {
-						for (String i: programNamesPl1Io) {
-							Paragraph indentedSubTitle = title(i + " - PL1");
-//							document.add(title(data));
-							Font fontForSubTitle = new Font(Font.BOLD, 14);
-							indentedSubTitle.setFont(fontForSubTitle);
-							indentedSubTitle.setIndentationLeft(100f);
-							document.add(indentedSubTitle);
 						
-							document.add(inputOutputFocusTables(pl1IODetsMap.get(mapKey), i));
+						Paragraph indentedSubTitle = title("5.1 Input/Output" + " - PL1");
+						Font fontForSubTitle = new Font(Font.BOLD, 14);
+						indentedSubTitle.setFont(fontForSubTitle);
+						indentedSubTitle.setIndentationLeft(100f);
+						document.add(indentedSubTitle);
+						document.add(inputOutputFocusTables(pl1IODetsMap.get(mapKey), "NA"));
 						
-						}
 					}
 					
-					Paragraph indentedFocusComplexity = titlesection("Focus Complexity");
+					
+					Paragraph indentedFocusComplexity = titlesection("6.0 Complexity");
 					document.add(indentedFocusComplexity);
+					Paragraph newIndentedFocusComplexity = title("6.1 Focus Complexity");
+					Font someFont = new Font(BaseFont.createFont(), 14);
+					newIndentedFocusComplexity.setFont(someFont);
+					newIndentedFocusComplexity.setIndentationLeft(100);
+					document.add(newIndentedFocusComplexity);
 					if (focusComplexityMap.containsKey(mapKey)) {
 						ArrayList<FocusComplexity> focusComplexityList = focusComplexityMap.get(mapKey);
-						document.add(focusComplexityTable(focusComplexityList));
+						PdfPTable focTable = focusComplexityTable(focusComplexityList);
+						float maxTableWidth = document.right() - document.left();
+						 focTable.setTotalWidth(maxTableWidth);
+						 document.add(focTable);
+						 Paragraph focusComplexityContent2 = content("Complexity has been determined based on below matrix");
+							focusComplexityContent2.setIndentationLeft(60);
+							document.add(focusComplexityContent2);
+							document.add(focusMatrixComp());
+							
 						
 						
 					}else {
-						document.add(new Paragraph("NA"));
+						Paragraph na = new Paragraph("N/A");
+						na.setIndentationLeft(100f);
+						document.add(na);
 					}
 					
 					
@@ -1518,7 +1533,7 @@ public class PDFGeneratorService {
 //			newTable.addCell(data.getPSBMember());
 			
 			if (data.getPGMName().isBlank()) {
-				newTable.addCell("NA");
+				newTable.addCell("N/A");
 			}
 			
 			else {
@@ -1526,26 +1541,26 @@ public class PDFGeneratorService {
 			}
 			
 			if (data.getDBDName().isBlank()) {
-				newTable.addCell("NA");
+				newTable.addCell("N/A");
 			}
 			else {
 				newTable.addCell(data.getDBDName());
 			}
 			
 			if (data.getDBDProcopt().isBlank()) {
-				newTable.addCell("NA");
+				newTable.addCell("N/A");
 			}else {
 				newTable.addCell(data.getDBDProcopt());
 			}
 			
 			if (data.getSegement().trim() == "") {
-				newTable.addCell("NA");
+				newTable.addCell("N/A");
 			}
 			else {
 				newTable.addCell(data.getSegement());
 			}
 			if(data.getSegProcopt().trim() == "") {
-				newTable.addCell("NA");
+				newTable.addCell("N/A");
 			}
 			else {
 				newTable.addCell(data.getSegProcopt());
@@ -1561,7 +1576,7 @@ public class PDFGeneratorService {
 //		ArrayList<PdfPTable> tables = new ArrayList<>();
 		
 		
-		PdfPTable newTable = new PdfPTable(5);
+		PdfPTable newTable = new PdfPTable(3);
 		
 		Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
 		tableHeaderTitle.setSize(14);
@@ -1570,30 +1585,26 @@ public class PDFGeneratorService {
 		newTable.addCell(new Paragraph("Program Name", tableHeaderTitle));// creates header
 		newTable.addCell(new Paragraph("Database Name", tableHeaderTitle));// creates header
 		newTable.addCell(new Paragraph("Database Action", tableHeaderTitle));// creates header
-		newTable.addCell(new Paragraph("Segment Used", tableHeaderTitle));// creates header
-		newTable.addCell(new Paragraph("Segment Action", tableHeaderTitle));	
 		
 
 		int number_of_elements = 0;
 		for (FocusData data: focusData) {
-//			newTable.addCell(data.getPSBMember());
-//			System.out.print("OK\n");
+
 			if ((data.getProgramType().trim().equals("IMS DATABASE")&& data.getProgramName().trim().equals(key))) {
 				
 				newTable.addCell(data.getProgramName());
 				newTable.addCell(data.getProgramTableOrFileName());
-				newTable.addCell(data.getProgramDescription());
-				newTable.addCell("NA");
-				newTable.addCell("NA");
+				newTable.addCell("READ");
+
 				number_of_elements++;
 			}
 		}
 		if(number_of_elements == 0) {
-			newTable.addCell("NA");
-			newTable.addCell("NA");
-			newTable.addCell("NA");
-			newTable.addCell("NA");
-			newTable.addCell("NA");
+			newTable.addCell("N/A");
+			newTable.addCell("N/A");
+			newTable.addCell("N/A");
+			newTable.addCell("N/A");
+			newTable.addCell("N/A");
 		}
 		newTable.setSpacingAfter(20);
 		newTable.setSpacingBefore(20);
@@ -1622,11 +1633,11 @@ public class PDFGeneratorService {
 //			newTable.addCell(data.getPGMName());
 //			newTable.addCell(data.getDBDName());
 //			newTable.addCell(data.getDBDProcopt());
-			if(data.getProgramType().trim().equals("DB2 TABLE") && data.getProgramName().trim().equals(key)) {
+			if(data.getProgramType().trim().equals("DB2 TABLE")) {
 				newTable.addCell(data.getProgramName());
 				newTable.addCell(data.getProgramType2());
 				newTable.addCell(data.getProgramDescription());
-				newTable.addCell("NA");
+				newTable.addCell("N/A");
 			}
 
 		}
@@ -1675,13 +1686,14 @@ public class PDFGeneratorService {
 		for (FocusData data: focusData) {
 
 
-		if(data.getProgramType().trim().equals("I/O FILE") && data.getProgramName().trim().equals(key)) {
+		if(data.getProgramType().trim().equals("I/O FILE") && !(data.getFileName().trim().equals(""))) {
 			newTable.addCell(data.getProgramName());
 			newTable.addCell(data.getProgramTableOrFileName());
 			newTable.addCell(data.getFileName());
 			newTable.addCell(data.getInputOrOutput());
 
 		}
+		
 	}
 		
 		newTable.setSpacingAfter(20);
@@ -1707,15 +1719,15 @@ public class PDFGeneratorService {
 		newTable.addCell(new Paragraph("Usage(Input / Output)", tableHeaderTitle));// creates header
 		
 		for (Pl1IODets data: pl1IoData) {
-
-
-		if(data.getProgramName().trim().equals(key)) {
-			newTable.addCell(data.getProgramName());
-			newTable.addCell(data.getDDName());
-			newTable.addCell(data.getFileName());
-			newTable.addCell(data.getUsage());
-
-		}
+			if (data.getFileName().trim().equals("")) {
+				
+			}
+			else {
+				newTable.addCell(data.getProgramName());
+				newTable.addCell(data.getDDName());
+				newTable.addCell(data.getFileName());
+				newTable.addCell(data.getUsage());
+			}
 	}
 		
 		newTable.setSpacingAfter(20);
@@ -1745,12 +1757,12 @@ public class PDFGeneratorService {
 		newTable.addCell(new Paragraph("Query", tableHeaderTitle));// creates header
 		
 		for (PL1DB2Query data:  pl1QueryData) {
-			if (key.trim().equals(data.getProgramName())) {
+			
 				newTable.addCell(data.getJobName());
 				newTable.addCell(data.getProgramName());
 				newTable.addCell("");
 				newTable.addCell(new Paragraph(data.getDb2Query(), querySize));
-			}
+			
 		}
 		
 		newTable.setSpacingAfter(20);
@@ -1764,15 +1776,15 @@ public class PDFGeneratorService {
 //		ArrayList<PdfPTable> tables = new ArrayList<>();
 		
 		
-		PdfPTable newTable = new PdfPTable(11);
+		PdfPTable newTable = new PdfPTable(12);
 		
 		Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
-		tableHeaderTitle.setSize(8);
+		tableHeaderTitle.setSize(10);
 		
 		
 		
 		Font querySize = FontFactory.getFont(FontFactory.TIMES);
-		querySize.setSize(8);
+		querySize.setSize(10);
 		
 //		newTable.addCell(new Paragraph("PSB PDS MEMBER", tableHeaderTitle));// creates header
 		newTable.addCell(new Paragraph("Program Name", tableHeaderTitle));// creates header
@@ -1786,6 +1798,8 @@ public class PDFGeneratorService {
 		newTable.addCell(new Paragraph("Include",  tableHeaderTitle));
 		newTable.addCell(new Paragraph("Ex",  tableHeaderTitle));
 		newTable.addCell(new Paragraph("Total Lines",  tableHeaderTitle));
+		newTable.addCell(new Paragraph("Complexity",  tableHeaderTitle));
+		
 		for (FocusComplexity data: focusComplexityArr) {
 			newTable.addCell(new Paragraph(data.getProgram(), querySize));
 			newTable.addCell(new Paragraph(data.getTableFiles(), querySize));
@@ -1798,8 +1812,10 @@ public class PDFGeneratorService {
 			newTable.addCell(new Paragraph(data.getInclude(), querySize));
 			newTable.addCell(new Paragraph(data.getEx(), querySize));
 			newTable.addCell(new Paragraph(data.getTotalLines(), querySize));
-
+			newTable.addCell(new Paragraph(data.getComplexity(), querySize));
 		}
+		float[] Widths = {150f, 80f, 80f, 80f, 80f, 80f, 80f, 80f, 80f, 80f, 80f, 150f};
+		newTable.setWidths(Widths);
 		
 		newTable.setSpacingAfter(20);
 		newTable.setSpacingBefore(20);
@@ -1807,6 +1823,65 @@ public class PDFGeneratorService {
 		
 	}
 	
+	public PdfPTable focusMatrixComp(){
+//		ArrayList<PdfPTable> tables = new ArrayList<>();
+		
+		
+		PdfPTable newTable = new PdfPTable(8);
+		
+		Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
+		tableHeaderTitle.setSize(10);
+		
+		
+		
+		Font querySize = FontFactory.getFont(FontFactory.TIMES);
+		querySize.setSize(10);
+		
+//		newTable.addCell(new Paragraph("PSB PDS MEMBER", tableHeaderTitle));// creates header
+
+		newTable.addCell(new Paragraph("Table Files", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Match Files", tableHeaderTitle));
+		newTable.addCell(new Paragraph("Joins", tableHeaderTitle));// creates header
+		newTable.addCell(new Paragraph("Modify files",  tableHeaderTitle));
+		newTable.addCell(new Paragraph("Include",  tableHeaderTitle));
+		newTable.addCell(new Paragraph("Ex",  tableHeaderTitle));
+		newTable.addCell(new Paragraph("Total Lines",  tableHeaderTitle));
+		newTable.addCell(new Paragraph("Complexity",  tableHeaderTitle));
+		
+
+		newTable.addCell(new Paragraph("<3", querySize));
+		newTable.addCell(new Paragraph("<2", querySize));
+		newTable.addCell(new Paragraph("<2", querySize));
+		newTable.addCell(new Paragraph("=0", querySize));
+		newTable.addCell(new Paragraph("<2", querySize));
+		newTable.addCell(new Paragraph("<2", querySize));
+		newTable.addCell(new Paragraph("<10", querySize));
+		newTable.addCell(new Paragraph("Simple", querySize));
+		
+		newTable.addCell(new Paragraph("<5", querySize));
+		newTable.addCell(new Paragraph("<4", querySize));
+		newTable.addCell(new Paragraph("<4", querySize));
+		newTable.addCell(new Paragraph("<2", querySize));
+		newTable.addCell(new Paragraph("<4", querySize));
+		newTable.addCell(new Paragraph("<4", querySize));
+		newTable.addCell(new Paragraph("<15", querySize));
+		newTable.addCell(new Paragraph("Medium", querySize));
+		
+		newTable.addCell(new Paragraph(">5", querySize));
+		newTable.addCell(new Paragraph(">4", querySize));
+		newTable.addCell(new Paragraph(">4", querySize));
+		newTable.addCell(new Paragraph(">2", querySize));
+		newTable.addCell(new Paragraph(">4", querySize));
+		newTable.addCell(new Paragraph(">4", querySize));
+		newTable.addCell(new Paragraph(">15", querySize));
+		newTable.addCell(new Paragraph("Complex", querySize));
+		
+		
+		newTable.setSpacingAfter(20);
+		newTable.setSpacingBefore(20);
+		return newTable;
+		
+	}
 
 	
 	private static class PageNumberAndMarginHandler extends PdfPageEventHelper{
