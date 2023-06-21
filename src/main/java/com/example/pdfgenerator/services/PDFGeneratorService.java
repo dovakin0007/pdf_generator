@@ -564,12 +564,16 @@ public class PDFGeneratorService {
 					tableHeadingBox.addCell(titleMain);
 					
 					//creating table
+					
 					PdfPTable table1 = new PdfPTable(4);
+					
+					float[] width2 = {200, 300, 150, 150};
 					
 					table1.addCell(new Paragraph("Step Name", tableHeaderTitle));// creates header
 					table1.addCell(new Paragraph("Step Description", tableHeaderTitle));// creates header
 					table1.addCell(new Paragraph("Program", tableHeaderTitle));
 					table1.addCell(new Paragraph("Parameters",  tableHeaderTitle));
+					table1.setWidths(width2);
 					for(JobDetails data: map.get(mapKey)) {//looping to the array list
 						if(data.getJobStep().trim() == "") {
 						
@@ -612,7 +616,9 @@ public class PDFGeneratorService {
 					programTable.addCell(new Paragraph("Program Type", tableHeaderTitle));
 					programTable.addCell(new Paragraph("Process Flow", tableHeaderTitle));
 					programTable.addCell(new Paragraph("Called Modules", tableHeaderTitle));
-
+						
+					float[] width = {150, 150, 400, 150};
+					programTable.setWidths(width);
 					Map<String, ArrayList<String>> sortedFocusProgramDataMap = new TreeMap<>(programStepDetails);
 					for (String i: sortedFocusProgramDataMap.keySet()) {
 						programTable.addCell(i);
@@ -629,14 +635,10 @@ public class PDFGeneratorService {
 						for(String calledModule : moduleTypesKeyValues.get(i)) {
 							calledModules.append(calledModule + "\n");
 						}
-						programTable.addCell(calledModules.toString());
-						
-						
-						
+						programTable.addCell(calledModules.toString());	
 						
 					}
-					
-				
+	
 					if (pl1Map.containsKey(mapKey)) {
 						for(Pl1Details pl1Dets: pl1Map.get(mapKey)) {
 						
@@ -1041,6 +1043,7 @@ public class PDFGeneratorService {
 					if (focusComplexityMap.containsKey(mapKey)) {
 						ArrayList<FocusComplexity> focusComplexityList = focusComplexityMap.get(mapKey);
 						PdfPTable focTable = focusComplexityTable(focusComplexityList);
+						focTable.setWidthPercentage(90);
 						document.add(focTable);
 						Paragraph focusComplexityContent2 = content("Complexity has been determined based on below matrix");
 						focusComplexityContent2.setIndentationLeft(60);
@@ -1055,10 +1058,7 @@ public class PDFGeneratorService {
 						na.setIndentationLeft(100f);
 						document.add(na);
 					}
-					
-//					for(int i = 0;i< document.getPageNumber(); i++) {
-////						PdfPage page
-//					}
+				
 					document.close();
 					
 	
@@ -1114,8 +1114,6 @@ public class PDFGeneratorService {
 
 					
 					titleMain.setPadding(10f);
-//					titleMain.setBorder(2);
-
 					titleMain.setHorizontalAlignment(PdfPCell.ALIGN_CENTER);
 					
 					PdfPTable tableHeadingBox = new PdfPTable(1);
@@ -1130,6 +1128,8 @@ public class PDFGeneratorService {
 					table1.addCell(new Paragraph("Step Description", tableHeaderTitle));// creates header
 					table1.addCell(new Paragraph("Program", tableHeaderTitle));
 					table1.addCell(new Paragraph("Parameters",  tableHeaderTitle));
+					float[] width = {200, 300, 150, 150};
+					table1.setWidths(width);
 					for(JobDetails data: map.get(mapKey)) {//looping to the array list
 						if(data.getJobStep().trim() == "") {
 						
@@ -1143,17 +1143,18 @@ public class PDFGeneratorService {
 						else {
 							table1.addCell(data.getJobStep());
 						}
+						if(data.getStepDescription().trim() == "") {
+							table1.addCell("N/A");
+						}else {
+							table1.addCell(data.getStepDescription());
+						}
 						if(data.getProgramName().trim() == "") {
 							table1.addCell("N/A");
 						}
 						else {
 							table1.addCell(data.getProgramName());
 						}
-						if(data.getStepDescription().trim() == "") {
-							table1.addCell("N/A");
-						}else {
-							table1.addCell(data.getStepDescription());
-							}
+						
 						}
 						if(data.getParameters().trim().equals("")) {
 							table1.addCell("N/A");
@@ -1170,7 +1171,8 @@ public class PDFGeneratorService {
 					programTable.addCell(new Paragraph("Program Type", tableHeaderTitle));
 					programTable.addCell(new Paragraph("Process Flow", tableHeaderTitle));
 					programTable.addCell(new Paragraph("Called Modules", tableHeaderTitle));
-		
+					float[] width2 = {150, 150, 400, 150};
+					programTable.setWidths(width2);
 
 					if (pl1Map.containsKey(mapKey)) {
 						for(Pl1Details pl1Dets: pl1Map.get(mapKey)) {
@@ -1217,9 +1219,7 @@ public class PDFGeneratorService {
 					else {
 						document.add(flowChartContentEdited);
 						document.add(content("NN"));
-//						document.add(title("Program Details"));
-//						document.add(content("Below programs are part of this job which performs given actions."));
-//						document.add(programTable);
+
 					}
 					
 
@@ -1442,7 +1442,9 @@ public class PDFGeneratorService {
 						PdfPTable focTable = focusComplexityTable(focusComplexityList);
 						float maxTableWidth = document.right() - document.left();
 						 focTable.setTotalWidth(maxTableWidth);
+						 focTable.setWidthPercentage(90);
 						 document.add(focTable);
+						 
 						 Paragraph focusComplexityContent2 = content("Complexity has been determined based on below matrix");
 							focusComplexityContent2.setIndentationLeft(60);
 							document.add(focusComplexityContent2);
@@ -1629,15 +1631,11 @@ public class PDFGeneratorService {
 		newTable.addCell(new Paragraph("DB2 Query", tableHeaderTitle));// creates header
 
 		for (FocusData data: focusData) {
-//////			newTable.addCell(data.getPSBMember());
-//			newTable.addCell(data.getPGMName());
-//			newTable.addCell(data.getDBDName());
-//			newTable.addCell(data.getDBDProcopt());
 			if(data.getProgramType().trim().equals("DB2 TABLE")) {
 				newTable.addCell(data.getProgramName());
 				newTable.addCell(data.getProgramType2());
 				newTable.addCell(data.getProgramDescription());
-				newTable.addCell("N/A");
+				newTable.addCell(" ");
 			}
 
 		}
@@ -1779,12 +1777,12 @@ public class PDFGeneratorService {
 		PdfPTable newTable = new PdfPTable(12);
 		
 		Font tableHeaderTitle  = FontFactory.getFont(FontFactory.TIMES_BOLD);
-		tableHeaderTitle.setSize(10);
+		tableHeaderTitle.setSize(11);
 		
 		
 		
 		Font querySize = FontFactory.getFont(FontFactory.TIMES);
-		querySize.setSize(10);
+		querySize.setSize(11);
 		
 //		newTable.addCell(new Paragraph("PSB PDS MEMBER", tableHeaderTitle));// creates header
 		newTable.addCell(new Paragraph("Program Name", tableHeaderTitle));// creates header
@@ -1814,7 +1812,7 @@ public class PDFGeneratorService {
 			newTable.addCell(new Paragraph(data.getTotalLines(), querySize));
 			newTable.addCell(new Paragraph(data.getComplexity(), querySize));
 		}
-		float[] Widths = {150f, 80f, 80f, 80f, 80f, 80f, 80f, 80f, 80f, 80f, 80f, 150f};
+		float[] Widths = {150f, 80f, 100f, 80f, 100f, 80f, 80f, 80f, 100f, 80f, 80f, 150f};
 		newTable.setWidths(Widths);
 		
 		newTable.setSpacingAfter(20);
@@ -1876,6 +1874,8 @@ public class PDFGeneratorService {
 		newTable.addCell(new Paragraph(">15", querySize));
 		newTable.addCell(new Paragraph("Complex", querySize));
 		
+		float[] tableWidth1 = {100f, 100f, 100f, 100f, 100f, 100f, 100f, 150f};
+		newTable.setWidths(tableWidth1);
 		
 		newTable.setSpacingAfter(20);
 		newTable.setSpacingBefore(20);
